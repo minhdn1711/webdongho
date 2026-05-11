@@ -30,4 +30,15 @@ class Product extends Model
     {
         return $this->hasMany(StockHistory::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
 }

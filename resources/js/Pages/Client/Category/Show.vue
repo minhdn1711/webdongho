@@ -127,28 +127,30 @@ const addToCart = (product) => {
                         </div>
 
                         <div v-if="products.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                            <div v-for="product in products" :key="product.id" class="bg-white p-4 group cursor-pointer shadow-sm hover:shadow-xl transition">
-                                <div class="relative overflow-hidden aspect-square mb-4">
-                                    <img :src="product.image" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
-                                    <div 
-                                        v-if="settings.allow_out_of_stock_orders === '1' || product.stock > 0"
-                                        @click.stop="addToCart(product)"
-                                        class="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition duration-300 bg-[#d10000] text-white py-2 text-center text-sm font-bold"
-                                    >
-                                        THÊM VÀO GIỎ
+                            <div v-for="product in products" :key="product.id" class="group">
+                                <Link :href="route('product.show', product.slug)" class="block bg-white p-4 shadow-sm hover:shadow-xl transition">
+                                    <div class="relative overflow-hidden aspect-square mb-4">
+                                        <img :src="product.image" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
+                                        <div 
+                                            v-if="settings.allow_out_of_stock_orders === '1' || product.stock > 0"
+                                            @click.prevent="addToCart(product)"
+                                            class="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition duration-300 bg-[#d10000] text-white py-2 text-center text-sm font-bold"
+                                        >
+                                            THÊM VÀO GIỎ
+                                        </div>
+                                        <div 
+                                            v-else
+                                            class="absolute bottom-0 left-0 right-0 bg-gray-500 text-white py-2 text-center text-sm font-bold"
+                                        >
+                                            HẾT HÀNG
+                                        </div>
                                     </div>
-                                    <div 
-                                        v-else
-                                        class="absolute bottom-0 left-0 right-0 bg-gray-500 text-white py-2 text-center text-sm font-bold"
-                                    >
-                                        HẾT HÀNG
+                                    <h3 class="text-sm font-medium h-10 overflow-hidden line-clamp-2 mb-2 group-hover:text-[#d10000] transition text-center">{{ product.name }}</h3>
+                                    <div class="flex items-center justify-center gap-2">
+                                        <p class="text-[#d10000] font-bold">{{ formatPrice(product.sale_price || product.price) }}</p>
+                                        <p v-if="product.sale_price" class="text-gray-400 text-xs line-through">{{ formatPrice(product.price) }}</p>
                                     </div>
-                                </div>
-                                <h3 class="text-sm font-medium h-10 overflow-hidden line-clamp-2 mb-2 group-hover:text-[#d10000] transition">{{ product.name }}</h3>
-                                <div class="flex items-center gap-2">
-                                    <p class="text-[#d10000] font-bold">{{ formatPrice(product.sale_price || product.price) }}</p>
-                                    <p v-if="product.sale_price" class="text-gray-400 text-xs line-through">{{ formatPrice(product.price) }}</p>
-                                </div>
+                                </Link>
                             </div>
                         </div>
 

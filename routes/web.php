@@ -24,6 +24,16 @@ Route::post('/checkout', [App\Http\Controllers\Client\CheckoutController::class,
 Route::get('/checkout/success/{order}', [App\Http\Controllers\Client\CheckoutController::class, 'success'])->name('checkout.success');
 
 Route::get('/category/{slug?}', [App\Http\Controllers\Client\CategoryController::class, 'show'])->name('category.show');
+Route::get('/product/{slug}', [App\Http\Controllers\Client\ProductController::class, 'show'])->name('product.show');
+
+// Reviews
+Route::post('/reviews', [App\Http\Controllers\Client\ReviewController::class, 'store'])->name('reviews.store');
+
+// Wishlist
+Route::middleware('auth')->group(function () {
+    Route::get('/wishlist', [App\Http\Controllers\Client\WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/toggle', [App\Http\Controllers\Client\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+});
 
 Route::redirect('/admin', '/admin/dashboard');
 

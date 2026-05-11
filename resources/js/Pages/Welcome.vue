@@ -64,41 +64,76 @@ const addToCart = (product) => {
         </section>
 
         <!-- Featured Products -->
-        <section class="bg-gray-50 py-16">
+        <section class="bg-white py-16 md:py-24">
             <div class="max-w-7xl mx-auto px-4">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold uppercase tracking-widest mb-2 italic text-[#d10000]">Sản Phẩm Nổi Bật</h2>
-                    <div class="w-20 h-1 bg-[#d10000] mx-auto"></div>
+                <div class="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-xs md:text-sm font-bold text-[#d10000] uppercase tracking-[0.4em] mb-4">Bộ sưu tập mới</h2>
+                        <h3 class="text-3xl md:text-5xl font-bold uppercase italic tracking-tight">Sản Phẩm Nổi Bật</h3>
+                    </div>
+                    <div class="hidden md:block w-40 h-px bg-gray-200"></div>
+                    <Link :href="route('category.show')" class="text-xs font-bold uppercase tracking-widest border-b-2 border-[#d10000] pb-1 hover:text-[#d10000] transition">
+                        Xem tất cả sản phẩm
+                    </Link>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div v-for="product in products" :key="product.id" class="bg-white p-4 group cursor-pointer shadow-sm hover:shadow-xl transition">
-                        <div class="relative overflow-hidden aspect-square mb-4">
-                            <img :src="product.image" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
-                            <div 
-                                v-if="settings.allow_out_of_stock_orders === '1' || product.stock > 0"
-                                @click.stop="addToCart(product)"
-                                class="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition duration-300 bg-[#d10000] text-white py-2 text-center text-sm font-bold active:bg-black"
-                            >
-                                THÊM VÀO GIỎ
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
+                    <div v-for="product in products" :key="product.id" class="group">
+                        <Link :href="route('product.show', product.slug)" class="block">
+                            <div class="relative overflow-hidden aspect-[4/5] mb-6 bg-gray-50 border border-gray-100">
+                                <img :src="product.image" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
+                                <div v-if="product.sale_price" class="absolute top-4 left-4 bg-[#d10000] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">Sale</div>
+                                
+                                <div 
+                                    v-if="settings.allow_out_of_stock_orders === '1' || product.stock > 0"
+                                    @click.prevent="addToCart(product)"
+                                    class="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition duration-300 bg-black/90 text-white py-4 text-center text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#d10000]"
+                                >
+                                    Thêm vào giỏ hàng
+                                </div>
+                                <div 
+                                    v-else
+                                    class="absolute bottom-0 left-0 right-0 bg-gray-500/90 text-white py-4 text-center text-[10px] font-bold uppercase tracking-[0.2em]"
+                                >
+                                    Hết hàng
+                                </div>
                             </div>
-                            <div 
-                                v-else
-                                class="absolute bottom-0 left-0 right-0 bg-gray-500 text-white py-2 text-center text-sm font-bold"
-                            >
-                                HẾT HÀNG
+                            <div class="text-center">
+                                <h3 class="text-xs font-bold uppercase tracking-widest mb-2 line-clamp-1 group-hover:text-[#d10000] transition px-2">{{ product.name }}</h3>
+                                <div class="flex items-center justify-center gap-3">
+                                    <p class="text-[#d10000] font-bold text-sm">{{ formatPrice(product.sale_price || product.price) }}</p>
+                                    <p v-if="product.sale_price" class="text-gray-400 text-[10px] line-through">{{ formatPrice(product.price) }}</p>
+                                </div>
                             </div>
-                        </div>
-                        <h3 class="text-sm font-medium h-10 overflow-hidden line-clamp-2 mb-2 group-hover:text-[#d10000] transition">{{ product.name }}</h3>
-                        <div class="flex items-center gap-2">
-                            <p class="text-[#d10000] font-bold">{{ formatPrice(product.sale_price || product.price) }}</p>
-                            <p v-if="product.sale_price" class="text-gray-400 text-xs line-through">{{ formatPrice(product.price) }}</p>
-                        </div>
+                        </Link>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="text-center mt-12">
-                    <button class="border-2 border-black hover:bg-black hover:text-white px-10 py-3 transition font-bold uppercase tracking-widest">Xem Tất Cả</button>
+        <!-- Why Choose Us -->
+        <section class="bg-gray-50 py-16 border-y border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="flex flex-col items-center text-center px-6">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-gray-100">
+                        <svg class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <h4 class="text-sm font-bold uppercase tracking-widest mb-3">100% Chính hãng</h4>
+                    <p class="text-xs text-gray-500 leading-relaxed">Cam kết mọi sản phẩm bán ra đều là hàng chính hãng Julius Hàn Quốc, đầy đủ hộp sổ thẻ.</p>
+                </div>
+                <div class="flex flex-col items-center text-center px-6 border-x border-gray-200">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-gray-100">
+                        <svg class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <h4 class="text-sm font-bold uppercase tracking-widest mb-3">Bảo hành 12 tháng</h4>
+                    <p class="text-xs text-gray-500 leading-relaxed">Chế độ hậu mãi chuyên nghiệp, thay pin miễn phí trọn đời cho mọi đơn hàng tại website.</p>
+                </div>
+                <div class="flex flex-col items-center text-center px-6">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-gray-100">
+                        <svg class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    </div>
+                    <h4 class="text-sm font-bold uppercase tracking-widest mb-3">Giao hàng tận nơi</h4>
+                    <p class="text-xs text-gray-500 leading-relaxed">Giao hàng nhanh chóng toàn quốc, thanh toán khi nhận hàng (COD), hỗ trợ kiểm tra hàng.</p>
                 </div>
             </div>
         </section>

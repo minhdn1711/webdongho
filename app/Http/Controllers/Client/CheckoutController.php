@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Models\StockHistory;
 use App\Mail\LowStockNotification;
+use App\Mail\OrderNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -99,6 +100,15 @@ class CheckoutController extends Controller
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ]);
+            }
+
+            // Gửi email thông báo đơn hàng mới cho Admin
+            if ($adminEmail) {
+                try {
+                    Mail::to($adminEmail)->send(new OrderNotification($order));
+                } catch (\Exception $e) {
+                    \Log::error('Order notification mail error: ' . $e->getMessage());
+                }
             }
 
             DB::commit();

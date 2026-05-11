@@ -78,7 +78,12 @@ const formatPrice = (price) => {
                         </button>
                     </div>
 
-                    <Link :href="route('cart.index')" class="relative p-2 hover:text-[#d10000]">
+                    <!-- Wishlist Icon -->
+                    <Link v-if="$page.props.auth.user" :href="route('wishlist.index')" class="relative p-2 text-gray-400 hover:text-[#d10000] transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    </Link>
+
+                    <Link :href="route('cart.index')" class="relative p-2 hover:text-[#d10000] transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         <span v-if="cart.count > 0" class="absolute top-1 right-1 bg-[#d10000] text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">{{ cart.count }}</span>
                     </Link>
@@ -125,6 +130,7 @@ const formatPrice = (price) => {
                         <Link :href="route('category.show', 'dong-ho-nu')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Đồng Hồ Nữ</Link>
                         <Link :href="route('category.show', 'dong-ho-nam')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Đồng Hồ Nam</Link>
                         <Link :href="route('category.show')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Tất Cả Sản Phẩm</Link>
+                        <Link v-if="$page.props.auth.user" :href="route('wishlist.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Yêu thích</Link>
                         <Link :href="route('cart.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Giỏ Hàng</Link>
                         <Link :href="route('news.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Tin tức & Blog</Link>
                     </div>
@@ -209,8 +215,8 @@ const formatPrice = (price) => {
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 </style>
