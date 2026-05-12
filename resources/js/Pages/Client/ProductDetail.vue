@@ -83,6 +83,10 @@ const addToCart = () => {
                     <div class="mb-6">
                         <h1 class="text-3xl md:text-4xl font-bold mb-4 italic uppercase tracking-tight">{{ product.name }}</h1>
                         
+                        <div v-if="product.short_description" class="text-gray-500 text-sm mb-4 leading-relaxed border-l-2 border-[#d10000] pl-4 italic">
+                            {{ product.short_description }}
+                        </div>
+                        
                         <div class="flex items-center gap-4 mb-6">
                             <div class="flex items-center text-yellow-400">
                                 <template v-for="i in 5" :key="i">

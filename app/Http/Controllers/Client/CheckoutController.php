@@ -113,6 +113,8 @@ class CheckoutController extends Controller
 
             DB::commit();
 
+            event(new \App\Events\OrderPlaced($order));
+
             return redirect()->route('checkout.success', ['order' => $order->order_number]);
         } catch (\Exception $e) {
             DB::rollBack();

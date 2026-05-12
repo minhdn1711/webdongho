@@ -7,6 +7,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use App\Events\CategorySaved;
 
 class CategoryController extends Controller
 {
@@ -24,11 +25,13 @@ class CategoryController extends Controller
             'image' => 'nullable|string'
         ]);
 
-        Category::create([
+        $category = Category::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'image' => $request->image
         ]);
+
+        event(new CategorySaved($category));
 
         return redirect()->back()->with('success', 'Danh mục đã được tạo thành công!');
     }
@@ -45,6 +48,8 @@ class CategoryController extends Controller
             'slug' => Str::slug($request->name),
             'image' => $request->image
         ]);
+
+        event(new CategorySaved($category));
 
         return redirect()->back()->with('success', 'Danh mục đã được cập nhật thành công!');
     }

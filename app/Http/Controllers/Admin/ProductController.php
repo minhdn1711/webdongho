@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Events\ProductSaved;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -31,13 +32,16 @@ class ProductController extends Controller
         $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
+            'short_description' => 'nullable|string',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'image' => 'nullable',
             'image_file' => 'nullable|image|max:2048',
             'stock' => 'required|integer|min:0',
-            'is_featured' => 'boolean'
+            'is_featured' => 'boolean',
+            'sku' => 'nullable|string|max:255',
+            'barcode' => 'nullable|string|max:255',
         ]);
 
         $data = $request->except('image_file');
@@ -48,7 +52,9 @@ class ProductController extends Controller
             $data['image'] = Storage::url($path);
         }
 
-        Product::create($data);
+        $product = Product::create($data);
+
+        event(new ProductSaved($product));
 
         return redirect()->route('admin.products.index')->with('success', 'Sản phẩm đã được tạo thành công!');
     }
@@ -66,13 +72,16 @@ class ProductController extends Controller
         $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
+            'short_description' => 'nullable|string',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'sale_price' => 'nullable|numeric|min:0',
             'image' => 'nullable',
             'image_file' => 'nullable|image|max:2048',
             'stock' => 'required|integer|min:0',
-            'is_featured' => 'boolean'
+            'is_featured' => 'boolean',
+            'sku' => 'nullable|string|max:255',
+            'barcode' => 'nullable|string|max:255',
         ]);
 
         $data = $request->except('image_file');
@@ -90,6 +99,8 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+
+        event(new ProductSaved($product));
 
         return redirect()->route('admin.products.index')->with('success', 'Sản phẩm đã được cập nhật thành công!');
     }

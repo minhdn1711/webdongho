@@ -70,6 +70,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
 
     // Quản lý tin tức
     Route::resource('posts', App\Http\Controllers\Admin\PostController::class)->names('admin.posts');
+
+    // Pancake POS Integration
+    Route::prefix('pancake')->group(function () {
+        Route::get('/settings', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'settings'])->name('admin.pancake.settings');
+        Route::post('/settings', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'updateSettings'])->name('admin.pancake.settings.update');
+        Route::get('/sync-logs', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'syncLogs'])->name('admin.pancake.sync-logs');
+        Route::get('/webhook-logs', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'webhookLogs'])->name('admin.pancake.webhook-logs');
+        Route::post('/manual-sync/{type}/{id}', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'manualSync'])->name('admin.pancake.manual-sync');
+        Route::post('/retry-sync/{id}', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'retrySync'])->name('admin.pancake.retry-sync');
+    });
 });
 
 // Client News Routes

@@ -15,6 +15,7 @@ const form = useForm({
     _method: 'put',
     category_id: props.product.category_id,
     name: props.product.name,
+    short_description: props.product.short_description,
     description: props.product.description,
     price: props.product.price,
     sale_price: props.product.sale_price,
@@ -22,6 +23,8 @@ const form = useForm({
     image_file: null,
     stock: props.product.stock,
     is_featured: props.product.is_featured === 1 || props.product.is_featured === true,
+    sku: props.product.sku,
+    barcode: props.product.barcode,
 });
 
 const handleImageChange = (e) => {
@@ -70,10 +73,26 @@ const submit = () => {
                         <div v-if="form.errors.name" class="text-[#d63638] text-xs px-3 py-1 bg-[#fcf0f1]">{{ form.errors.name }}</div>
                     </div>
 
+                    <!-- Short Description -->
+                    <div class="bg-white border border-[#c3c4c7] shadow-sm">
+                        <div class="bg-[#f0f0f1] border-b border-[#c3c4c7] px-3 py-2">
+                            <span class="text-[13px] font-semibold text-[#1d2327]">Mô tả ngắn (Hiển thị đầu trang chi tiết)</span>
+                        </div>
+                        <div class="p-3">
+                            <textarea
+                                v-model="form.short_description"
+                                rows="3"
+                                placeholder="Nhập mô tả ngắn gọn về sản phẩm..."
+                                class="w-full border-[#8c8f94] rounded text-[13px] py-2 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]"
+                            ></textarea>
+                        </div>
+                        <div v-if="form.errors.short_description" class="text-[#d63638] text-xs px-3 py-1 bg-[#fcf0f1]">{{ form.errors.short_description }}</div>
+                    </div>
+
                     <!-- Description (Content Editor) -->
                     <div class="bg-white border border-[#c3c4c7] shadow-sm">
                         <div class="bg-[#f0f0f1] border-b border-[#c3c4c7] px-3 py-2">
-                            <span class="text-[13px] font-semibold text-[#1d2327]">Mô tả sản phẩm</span>
+                            <span class="text-[13px] font-semibold text-[#1d2327]">Mô tả chi tiết</span>
                         </div>
                         <div class="p-0">
                             <RichEditor
@@ -104,6 +123,14 @@ const submit = () => {
                                 <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Tồn kho</label>
                                 <input v-model="form.stock" type="number" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" required />
                                 <div v-if="form.errors.stock" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.stock }}</div>
+                            </div>
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">SKU (Mã sản phẩm)</label>
+                                <input v-model="form.sku" type="text" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Ví dụ: SP001" />
+                            </div>
+                            <div>
+                                <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Barcode (Mã vạch)</label>
+                                <input v-model="form.barcode" type="text" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Ví dụ: 893..." />
                             </div>
                         </div>
                     </div>

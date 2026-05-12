@@ -61,6 +61,8 @@ class StockController extends Controller
 
             DB::commit();
 
+            event(new \App\Events\ProductSaved($product));
+
             return redirect()->back()->with('success', 'Cập nhật kho hàng thành công!');
         } catch (\Exception $e) {
             DB::rollBack();
