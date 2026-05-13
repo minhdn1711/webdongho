@@ -1,4 +1,19 @@
 services:
+  # Nginx Proxy Manager (Quản lý SSL và Proxy)
+  nginx-proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: webdongho-proxy
+    restart: always
+    ports:
+      - '80:80'   # HTTP
+      - '443:443' # HTTPS
+      - '81:81'   # Giao diện quản lý
+    volumes:
+      - ./docker/proxy/data:/data
+      - ./docker/proxy/letsencrypt:/etc/letsencrypt
+    networks:
+      - webdongho-network
+
   # PHP App Service
   app:
     build:
@@ -13,13 +28,12 @@ services:
     networks:
       - webdongho-network
 
-  # Nginx Service
+  # Nginx Service (Nội bộ cho App)
   web:
     image: nginx:alpine
     container_name: webdongho-web
     restart: always
-    ports:
-      - "80:80"
+    # Không expose cổng 80 ra ngoài nữa, NPM sẽ gọi nội bộ
     volumes:
       - .:/var/www
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -40,11 +54,10 @@ services:
       MYSQL_USER: user
     volumes:
       - db_data:/var/lib/mysql
-    # Không expose cổng 3306 ra ngoài để bảo mật
     networks:
       - webdongho-network
 
-  # Queue Worker (Xử lý job đồng bộ POS trong nền)
+  # Queue Worker
   queue:
     image: webdongho-app
     container_name: webdongho-queue
@@ -59,7 +72,7 @@ services:
       - db
       - app
 
-  # Scheduler (Chạy các tác vụ định kỳ)
+  # Scheduler
   scheduler:
     image: webdongho-app
     container_name: webdongho-scheduler
