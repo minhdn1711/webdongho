@@ -44,6 +44,36 @@ services:
     networks:
       - webdongho-network
 
+  # Queue Worker (Xử lý job đồng bộ POS trong nền)
+  queue:
+    image: webdongho-app
+    container_name: webdongho-queue
+    restart: always
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    command: php artisan queue:work --timeout=120
+    networks:
+      - webdongho-network
+    depends_on:
+      - db
+      - app
+
+  # Scheduler (Chạy các tác vụ định kỳ)
+  scheduler:
+    image: webdongho-app
+    container_name: webdongho-scheduler
+    restart: always
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    command: php artisan schedule:work
+    networks:
+      - webdongho-network
+    depends_on:
+      - db
+      - app
+
 networks:
   webdongho-network:
     driver: bridge
