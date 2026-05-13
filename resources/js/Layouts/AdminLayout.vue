@@ -146,6 +146,11 @@ const menuItems = [
                 <!-- Main Content Slot -->
                 <slot />
             </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t border-gray-200 py-4 px-6 text-center text-sm text-gray-500 shrink-0">
+                <p>&copy; 2024 WebDongHo - Hệ thống quản trị chuyên nghiệp.</p>
+            </footer>
         </div>
 
         <!-- Notification Toast -->
