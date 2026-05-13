@@ -1,0 +1,52 @@
+services:
+  # PHP App Service
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    image: webdongho-app
+    container_name: webdongho-app
+    restart: always
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    networks:
+      - webdongho-network
+
+  # Nginx Service
+  web:
+    image: nginx:alpine
+    container_name: webdongho-web
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - webdongho-network
+    depends_on:
+      - app
+
+  # MySQL Service
+  db:
+    image: mysql:8.0
+    container_name: webdongho-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: webdongho
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: user
+    volumes:
+      - db_data:/var/lib/mysql
+    # Không expose cổng 3306 ra ngoài để bảo mật
+    networks:
+      - webdongho-network
+
+networks:
+  webdongho-network:
+    driver: bridge
+
+volumes:
+  db_data:

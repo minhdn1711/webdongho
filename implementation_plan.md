@@ -53,10 +53,31 @@ Các bảng chính dự kiến:
 
 ## Kế hoạch Triển khai VPS
 
-1. **Chuẩn bị:** Cài đặt Docker & Docker Compose trên VPS (Ubuntu 22.04/24.04).
-2. **CI/CD (Tùy chọn):** Sử dụng GitHub Actions để tự động build và push image hoặc đơn giản là `git pull` & `docker-compose up -d --build`.
-3. **SSL:** Sử dụng **Nginx Proxy Manager** hoặc **Certbot** để cài đặt SSL (HTTPS) miễn phí.
-4. **Backup:** Script tự động backup database hàng ngày và lưu ra ngoài VPS (Google Drive/S3).
+Để triển khai dự án lên VPS một cách nhanh chóng và tự động, hãy làm theo các bước sau:
+
+### 1. Chuẩn bị VPS
+- Thuê VPS chạy **Ubuntu 22.04** hoặc **24.04**.
+- Cấu hình SSH Key giữa VPS và GitHub để có thể `git pull` mà không cần mật khẩu.
+
+### 2. Triển khai lần đầu (Initial Setup)
+Kết nối vào VPS qua SSH, clone source code và chạy lệnh sau:
+```bash
+git clone https://github.com/your-repo/webdongho.git
+cd webdongho
+# Script này sẽ tự cài Docker, Compose và thiết lập dự án
+bash setup.sh --prod
+```
+
+### 3. Cập nhật mã nguồn (Deployment)
+Mỗi khi bạn `push` code mới lên GitHub, bạn chỉ cần vào VPS và chạy:
+```bash
+bash deploy.sh
+```
+
+### 4. Tối ưu hóa & Bảo mật
+- **SSL:** Sử dụng Nginx Proxy Manager (recommeded) hoặc Certbot để cài HTTPS.
+- **Firewall:** Đảm bảo chỉ mở cổng 80, 443 và 22. Cổng 3306 đã được đóng trong file `docker-compose.prod.yml`.
+- **Backup:** Sử dụng cronjob để backup thư mục `database/data` hoặc export SQL hàng ngày.
 
 ## Các bước tiếp theo
 
