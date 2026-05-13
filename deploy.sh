@@ -5,6 +5,9 @@
 echo ">>> Đang cập nhật mã nguồn từ GitHub..."
 git pull origin main
 
+echo ">>> Dừng toàn bộ các container đang chạy"
+docker compose -f docker-compose.prod.yml down
+
 echo ">>> Đang build và khởi động lại các container..."
 docker-compose -f docker-compose.prod.yml up -d --build
 
