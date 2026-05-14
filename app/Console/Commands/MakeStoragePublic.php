@@ -16,17 +16,18 @@ class MakeStoragePublic extends Command
         $this->info('Đang cấu hình Bucket thành Public...');
 
         try {
-            $bucket = env('AWS_BUCKET');
+            $config = config('filesystems.disks.s3');
+            $bucket = $config['bucket'];
             
-            // Khởi tạo S3 Client thủ công từ cấu hình .env
+            // Khởi tạo S3 Client từ cấu hình chính thức của Laravel
             $client = new S3Client([
                 'version' => 'latest',
-                'region'  => env('AWS_DEFAULT_REGION', 'us-east-1'),
-                'endpoint' => env('AWS_ENDPOINT'),
-                'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+                'region'  => $config['region'],
+                'endpoint' => $config['endpoint'],
+                'use_path_style_endpoint' => $config['use_path_style_endpoint'] ?? true,
                 'credentials' => [
-                    'key'    => env('AWS_ACCESS_KEY_ID'),
-                    'secret' => env('AWS_SECRET_ACCESS_KEY'),
+                    'key'    => $config['key'],
+                    'secret' => $config['secret'],
                 ],
             ]);
 
