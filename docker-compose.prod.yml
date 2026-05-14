@@ -102,6 +102,8 @@ services:
       MINIO_SERVER_URL: "http://165.99.14.54:9000"
       MINIO_BROWSER_REDIRECT_URL: "http://165.99.14.54:9001"
     command: server /data --console-address ":9001"
+    networks:
+      - webdongho-network
     restart: always
 
 networks:
