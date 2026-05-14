@@ -71,7 +71,7 @@ const formatPrice = (price) => {
                             @keyup.enter="handleSearch"
                             type="text" 
                             placeholder="Tìm kiếm đồng hồ..." 
-                            class="border-gray-300 focus:border-[#d10000] focus:ring-[#d10000] text-xs py-1.5 px-4 rounded-full w-48 transition-all focus:w-64"
+                            class="border-gray-300 focus:border-[#d10000] focus:ring-[#d10000] text-xs py-1.5 px-4 rounded-full w-60 transition-all"
                         />
                         <button @click="handleSearch" class="absolute right-3 text-gray-400 hover:text-[#d10000]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
