@@ -14,7 +14,7 @@ class CategoryController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Categories/Index', [
-            'categories' => Category::withCount('products')->get()
+            'categories' => Category::with('parent')->withCount('products')->get()
         ]);
     }
 
@@ -22,13 +22,15 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'image' => 'nullable|string'
+            'image' => 'nullable|string',
+            'parent_id' => 'nullable|exists:categories,id'
         ]);
 
         $category = Category::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
-            'image' => $request->image
+            'image' => $request->image,
+            'parent_id' => $request->parent_id
         ]);
 
         event(new CategorySaved($category));
@@ -40,13 +42,15 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'image' => 'nullable|string'
+            'image' => 'nullable|string',
+            'parent_id' => 'nullable|exists:categories,id|different:id'
         ]);
 
         $category->update([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
-            'image' => $request->image
+            'image' => $request->image,
+            'parent_id' => $request->parent_id
         ]);
 
         event(new CategorySaved($category));

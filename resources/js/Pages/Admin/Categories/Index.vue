@@ -16,6 +16,7 @@ const showMediaLibrary = ref(false);
 const form = useForm({
     name: '',
     image: '',
+    parent_id: '',
 });
 
 const handleImageSelect = (image) => {
@@ -32,6 +33,7 @@ const openEditModal = (category) => {
     editingCategory.value = category;
     form.name = category.name;
     form.image = category.image || '';
+    form.parent_id = category.parent_id || '';
     isModalOpen.value = true;
 };
 
@@ -86,6 +88,7 @@ const deleteCategory = () => {
                 <thead>
                     <tr class="border-b border-[#c3c4c7]">
                         <th class="px-3 py-2 text-[13px] font-semibold text-[#1d2327]">Tên danh mục</th>
+                        <th class="px-3 py-2 text-[13px] font-semibold text-[#1d2327]">Danh mục cha</th>
                         <th class="px-3 py-2 text-[13px] font-semibold text-[#1d2327]">Slug</th>
                         <th class="px-3 py-2 text-[13px] font-semibold text-[#1d2327]">Số sản phẩm</th>
                     </tr>
@@ -93,13 +96,18 @@ const deleteCategory = () => {
                 <tbody>
                     <tr v-for="category in categories" :key="category.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
                         <td class="px-3 py-2">
-                            <span class="text-[13px] font-semibold text-[#2271b1]">{{ category.name }}</span>
+                            <span class="text-[13px] font-semibold text-[#2271b1]">
+                                {{ category.parent_id ? '— ' + category.name : category.name }}
+                            </span>
                             <!-- Row Actions (WordPress style) -->
                             <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[#8c8f94]">
                                 <button @click="openEditModal(category)" class="text-[#2271b1] hover:text-[#135e96]">Sửa</button>
                                 <span>|</span>
                                 <button @click="confirmDelete(category)" class="text-[#b32d2e] hover:text-[#a02929]">Xóa</button>
                             </div>
+                        </td>
+                        <td class="px-3 py-2 text-[13px] text-[#50575e]">
+                            {{ category.parent ? category.parent.name : '—' }}
                         </td>
                         <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ category.slug }}</td>
                         <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ category.products_count }}</td>
@@ -125,6 +133,18 @@ const deleteCategory = () => {
                         <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Tên danh mục</label>
                         <input v-model="form.name" type="text" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" required />
                         <div v-if="form.errors.name" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.name }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Danh mục cha</label>
+                        <select v-model="form.parent_id" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]">
+                            <option value="">— Không có danh mục cha —</option>
+                            <template v-for="cat in categories" :key="cat.id">
+                                <option v-if="!editingCategory || cat.id !== editingCategory.id" :value="cat.id">
+                                    {{ cat.parent_id ? '-- ' + cat.name : cat.name }}
+                                </option>
+                            </template>
+                        </select>
+                        <div v-if="form.errors.parent_id" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.parent_id }}</div>
                     </div>
                     <div>
                         <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Hình ảnh (URL hoặc Thư viện)</label>
