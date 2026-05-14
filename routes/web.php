@@ -13,7 +13,7 @@ Route::get('/', function () {
             $banner->image_url = \Illuminate\Support\Facades\Storage::url($banner->image);
             return $banner;
         }),
-        'categories' => \App\Models\Category::all(),
+        'categories' => \App\Models\Category::whereNull('parent_id')->get(),
         'products' => \App\Models\Product::with('categories')->where('is_featured', true)->get(),
         'latest_posts' => \App\Models\Post::where('is_published', true)->latest()->limit(3)->get(),
     ]);
