@@ -35,6 +35,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'wishlist_ids' => $request->user() ? \App\Models\Wishlist::where('user_id', $request->user()->id)->pluck('product_id')->toArray() : [],
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),

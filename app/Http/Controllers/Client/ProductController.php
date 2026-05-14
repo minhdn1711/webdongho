@@ -17,9 +17,17 @@ class ProductController extends Controller
             $q->where('is_approved', true)->latest();
         }])->where('slug', $slug)->firstOrFail();
         
-        $categoryIds = $product->categories->pluck('id');
-        $relatedProducts = Product::whereHas('categories', function($q) use ($categoryIds) {
-                $q->whereIn('categories.id', $categoryIds) ->orWhereIn('category_id', $categoryIds);
+        $categoryIds = $product->categories->pluck('id')->toArray();
+        if ($product->category_id) {
+            $categoryIds[] = $product->category_id;
+        }
+        $categoryIds = array_unique($categoryIds);
+
+        $relatedProducts = Product::where(function($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds)
+                      ->orWhereHas('categories', function($q) use ($categoryIds) {
+                          $q->whereIn('categories.id', $categoryIds);
+                      });
             })
             ->where('id', '!=', $product->id)
             ->limit(4)

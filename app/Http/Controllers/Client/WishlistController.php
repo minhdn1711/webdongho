@@ -34,14 +34,13 @@ class WishlistController extends Controller
 
         if ($exists) {
             $exists->delete();
-            return response()->json(['status' => 'removed']);
+        } else {
+            Wishlist::create([
+                'user_id' => Auth::id(),
+                'product_id' => $request->product_id
+            ]);
         }
 
-        Wishlist::create([
-            'user_id' => Auth::id(),
-            'product_id' => $request->product_id
-        ]);
-
-        return response()->json(['status' => 'added']);
+        return back();
     }
 }

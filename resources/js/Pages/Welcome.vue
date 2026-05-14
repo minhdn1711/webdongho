@@ -1,7 +1,7 @@
 <script setup>
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { cart } from '@/Services/CartService';
+import ProductCard from '@/Components/ProductCard.vue';
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 
 const page = usePage();
@@ -46,23 +46,12 @@ onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
 });
 
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-};
-
 const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
     });
-};
-
-const addToCart = (product) => {
-    if (settings.value.allow_out_of_stock_orders !== '1' && product.stock <= 0) {
-        return;
-    }
-    cart.add(product);
 };
 </script>
 
@@ -134,35 +123,7 @@ const addToCart = (product) => {
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
-                    <div v-for="product in products" :key="product.id" class="group">
-                        <Link :href="route('product.show', product.slug)" class="block">
-                            <div class="relative overflow-hidden aspect-[4/5] mb-6 bg-gray-50 border border-gray-100">
-                                <img :src="product.image" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
-                                <div v-if="product.sale_price" class="absolute top-4 left-4 bg-[#d10000] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">Sale</div>
-                                
-                                <div 
-                                    v-if="settings.allow_out_of_stock_orders === '1' || product.stock > 0"
-                                    @click.prevent="addToCart(product)"
-                                    class="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition duration-300 bg-black/90 text-white py-4 text-center text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#d10000]"
-                                >
-                                    Thêm vào giỏ hàng
-                                </div>
-                                <div 
-                                    v-else
-                                    class="absolute bottom-0 left-0 right-0 bg-gray-500/90 text-white py-4 text-center text-[10px] font-bold uppercase tracking-[0.2em]"
-                                >
-                                    Hết hàng
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <h3 class="text-xs font-bold uppercase tracking-widest mb-2 line-clamp-1 group-hover:text-[#d10000] transition px-2">{{ product.name }}</h3>
-                                <div class="flex items-center justify-center gap-3">
-                                    <p class="text-[#d10000] font-bold text-sm">{{ formatPrice(product.sale_price || product.price) }}</p>
-                                    <p v-if="product.sale_price" class="text-gray-400 text-[10px] line-through">{{ formatPrice(product.price) }}</p>
-                                </div>
-                            </div>
-                        </Link>
-                    </div>
+                    <ProductCard v-for="product in products" :key="product.id" :product="product" />
                 </div>
             </div>
         </section>

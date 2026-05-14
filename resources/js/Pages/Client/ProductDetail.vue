@@ -2,6 +2,7 @@
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { cart } from '@/Services/CartService';
+import ProductCard from '@/Components/ProductCard.vue';
 import { ref, computed } from 'vue';
 
 const page = usePage();
@@ -83,10 +84,6 @@ const addToCart = () => {
                     <div class="mb-6">
                         <h1 class="text-3xl md:text-4xl font-bold mb-4 italic uppercase tracking-tight">{{ product.name }}</h1>
                         
-                        <div v-if="product.short_description" class="text-gray-500 text-sm mb-4 leading-relaxed border-l-2 border-[#d10000] pl-4 italic">
-                            {{ product.short_description }}
-                        </div>
-                        
                         <div class="flex items-center gap-4 mb-6">
                             <div class="flex items-center text-yellow-400">
                                 <template v-for="i in 5" :key="i">
@@ -95,17 +92,14 @@ const addToCart = () => {
                             </div>
                             <span class="text-sm text-gray-500 font-medium">({{ reviewCount }} đánh giá)</span>
                         </div>
-
-                        <div class="w-16 h-1 bg-[#d10000] mb-6"></div>
                         
                         <div class="flex items-baseline gap-4 mb-6">
                             <span class="text-3xl font-bold text-[#d10000]">{{ formatPrice(product.sale_price || product.price) }}</span>
                             <span v-if="product.sale_price" class="text-xl text-gray-400 line-through">{{ formatPrice(product.price) }}</span>
                         </div>
 
-                        <div class="prose prose-sm max-w-none text-gray-600 mb-8 leading-relaxed">
-                            <p v-if="product.description" v-html="product.description"></p>
-                            <p v-else>Đồng hồ Julius chính hãng từ Hàn Quốc. Thiết kế trẻ trung, thời thượng với chất lượng vượt trội. Phù hợp cho mọi dịp từ công sở đến dạo phố.</p>
+                        <div v-if="product.short_description" class="text-gray-500 text-sm mb-4 leading-relaxed border-l-2 border-[#d10000] pl-4 italic">
+                            {{ product.short_description }}
                         </div>
                     </div>
 
@@ -273,18 +267,7 @@ const addToCart = () => {
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    <Link 
-                        v-for="item in relatedProducts" 
-                        :key="item.id" 
-                        :href="route('product.show', item.slug)"
-                        class="group"
-                    >
-                        <div class="aspect-square overflow-hidden bg-gray-50 border border-gray-100 mb-4">
-                            <img :src="item.image" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
-                        </div>
-                        <h3 class="text-sm font-bold uppercase tracking-tight line-clamp-1 group-hover:text-[#d10000] transition mb-2">{{ item.name }}</h3>
-                        <p class="text-[#d10000] font-bold">{{ formatPrice(item.sale_price || item.price) }}</p>
-                    </Link>
+                    <ProductCard v-for="item in relatedProducts" :key="item.id" :product="item" />
                 </div>
             </div>
         </div>
