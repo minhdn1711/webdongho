@@ -98,6 +98,8 @@ services:
     environment:
       MINIO_ROOT_USER: admin           # Username đăng nhập
       MINIO_ROOT_PASSWORD: password123 # Password (thay đổi cho bảo mật)
+      MINIO_ROOT_USER_FILE: ""
+      MINIO_ROOT_PASSWORD_FILE: ""
       # Cấu hình để MinIO biết nó đang chạy trên IP nào
       MINIO_SERVER_URL: "https://s3.lamtimeshop.vn"
       MINIO_BROWSER_REDIRECT_URL: "http://165.99.14.54:9001"
