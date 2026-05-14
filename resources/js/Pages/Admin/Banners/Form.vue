@@ -2,7 +2,6 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
-import { Storage } from '@/Utils/Storage'; // Assuming there might be a helper, but I'll use direct URL
 
 const props = defineProps({
     banner: Object,
