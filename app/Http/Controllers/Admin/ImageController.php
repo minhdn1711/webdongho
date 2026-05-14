@@ -11,14 +11,14 @@ class ImageController extends Controller
 {
     public function index()
     {
-        $files = Storage::disk('public')->files('images');
+        $files = Storage::files('images');
         $images = array_map(function ($file) {
             return [
                 'name' => basename($file),
                 'url' => Storage::url($file),
                 'path' => $file,
-                'size' => Storage::disk('public')->size($file),
-                'last_modified' => Storage::disk('public')->lastModified($file),
+                'size' => Storage::size($file),
+                'last_modified' => Storage::lastModified($file),
             ];
         }, $files);
 
@@ -40,7 +40,7 @@ class ImageController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $image->store('images', 'public');
+                $image->store('images');
             }
         }
 
@@ -50,8 +50,8 @@ class ImageController extends Controller
     public function destroy(Request $request)
     {
         $path = $request->input('path');
-        if (Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        if (Storage::exists($path)) {
+            Storage::delete($path);
             return back()->with('success', 'Xóa ảnh thành công!');
         }
         return back()->with('error', 'Không tìm thấy ảnh!');

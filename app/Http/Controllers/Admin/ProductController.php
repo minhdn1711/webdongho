@@ -48,7 +48,7 @@ class ProductController extends Controller
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image_file')) {
-            $path = $request->file('image_file')->store('products', 'public');
+            $path = $request->file('image_file')->store('products');
             $data['image'] = Storage::url($path);
         }
 
@@ -89,12 +89,12 @@ class ProductController extends Controller
 
         if ($request->hasFile('image_file')) {
             // Delete old image if it was a local file
-            if ($product->image && str_contains($product->image, '/storage/products/')) {
-                $oldPath = str_replace('/storage/', '', $product->image);
-                Storage::disk('public')->delete($oldPath);
+            if ($product->image && (str_contains($product->image, '/storage/products/') || str_contains($product->image, env('AWS_BUCKET')))) {
+                $oldPath = str_replace(Storage::url(''), '', $product->image);
+                Storage::delete($oldPath);
             }
             
-            $path = $request->file('image_file')->store('products', 'public');
+            $path = $request->file('image_file')->store('products');
             $data['image'] = Storage::url($path);
         }
 

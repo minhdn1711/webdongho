@@ -24,7 +24,7 @@ class SettingController extends Controller
 
         foreach ($data as $key => $value) {
             if ($request->hasFile($key)) {
-                $path = $request->file($key)->store('settings', 'public');
+                $path = $request->file($key)->store('settings');
                 $value = Storage::url($path);
             }
 
