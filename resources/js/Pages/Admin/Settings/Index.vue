@@ -22,6 +22,9 @@ const form = useForm({
     admin_notification_email: (props.settings && props.settings.admin_notification_email) || (props.settings && props.settings.contact_email) || '',
     logo: (props.settings && props.settings.logo) || null,
     favicon: (props.settings && props.settings.favicon) || null,
+    contact_zalo: (props.settings && props.settings.contact_zalo) || '',
+    contact_messenger: (props.settings && props.settings.contact_messenger) || '',
+    contact_phone: (props.settings && props.settings.contact_phone) || '',
 });
 
 const logoPreview = ref((props.settings && props.settings.logo) || null);
@@ -135,6 +138,25 @@ const submit = () => {
                                             <button type="button" @click="openMediaLibrary('favicon')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Chọn từ thư viện</button>
                                             <input type="file" @change="handleFileUpload($event, 'favicon')" class="text-sm text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Configuration -->
+                            <div class="space-y-4 md:col-span-2">
+                                <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Cấu hình nút liên hệ (Zalo, Messenger, Hotlline)</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Link Zalo</label>
+                                        <input v-model="form.contact_zalo" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="https://zalo.me/..." />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Link Messenger</label>
+                                        <input v-model="form.contact_messenger" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="https://m.me/..." />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Số Hotline (Nút gọi)</label>
+                                        <input v-model="form.contact_phone" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="0123456789" />
                                     </div>
                                 </div>
                             </div>
