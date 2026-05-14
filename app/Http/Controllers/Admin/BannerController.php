@@ -30,13 +30,20 @@ class BannerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:2048',
+            'image' => 'required',
             'title' => 'nullable|string|max:255',
             'link' => 'nullable|url',
             'order' => 'integer',
         ]);
 
-        $path = $request->file('image')->store('banners');
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('banners');
+        } else {
+            // Nếu chọn từ thư viện, nó gửi lên dạng URL hoặc Path.
+            // Chúng ta cần lấy phần path tương đối để lưu vào DB.
+            $path = str_replace(Storage::url(''), '', $request->image);
+            $path = ltrim($path, '/');
+        }
 
         Banner::create([
             'title' => $request->title,
@@ -59,7 +66,7 @@ class BannerController extends Controller
     public function update(Request $request, Banner $banner)
     {
         $request->validate([
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable',
             'title' => 'nullable|string|max:255',
             'link' => 'nullable|url',
             'order' => 'integer',
@@ -68,11 +75,15 @@ class BannerController extends Controller
         $data = $request->only(['title', 'link', 'order', 'is_active']);
 
         if ($request->hasFile('image')) {
-            // Xóa ảnh cũ trên S3
+            // Xóa ảnh cũ trên S3 nếu là ảnh mới hoàn toàn
             if ($banner->image) {
                 Storage::delete($banner->image);
             }
             $data['image'] = $request->file('image')->store('banners');
+        } elseif ($request->image && is_string($request->image) && !str_contains($request->image, $banner->image)) {
+            // Nếu chọn ảnh khác từ thư viện
+            $path = str_replace(Storage::url(''), '', $request->image);
+            $data['image'] = ltrim($path, '/');
         }
 
         $banner->update($data);

@@ -1,5 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import MediaLibrary from '@/Components/MediaLibrary.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import RichEditor from '@/Components/RichEditor.vue';
@@ -9,6 +10,7 @@ defineProps({
 });
 
 const imagePreview = ref(null);
+const showMediaLibrary = ref(false);
 
 const form = useForm({
     category_id: '',
@@ -25,6 +27,12 @@ const form = useForm({
     barcode: '',
 });
 
+const handleImageSelect = (image) => {
+    form.image = image.url;
+    imagePreview.value = image.url;
+    form.image_file = null; // Clear file if selecting from library
+};
+
 const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -36,6 +44,7 @@ const handleImageChange = (e) => {
 const removeImage = () => {
     imagePreview.value = null;
     form.image_file = null;
+    form.image = '';
 };
 
 const submit = () => {
@@ -201,14 +210,30 @@ const submit = () => {
                                 </button>
                             </div>
 
-                            <!-- Upload Button -->
-                            <input type="file" id="image_upload" @change="handleImageChange" class="hidden" accept="image/*" />
-                            <label
-                                for="image_upload"
-                                class="inline-block text-[13px] text-[#2271b1] hover:text-[#135e96] hover:underline cursor-pointer"
-                            >
-                                {{ imagePreview || form.image ? 'Thay đổi ảnh sản phẩm' : 'Đặt ảnh sản phẩm' }}
-                            </label>
+                            <!-- Upload / Library Buttons -->
+                            <div class="flex flex-col gap-2 mt-2">
+                                <button 
+                                    type="button"
+                                    @click="showMediaLibrary = true"
+                                    class="text-[13px] text-[#2271b1] hover:text-[#135e96] font-medium text-left"
+                                >
+                                    {{ imagePreview || form.image ? 'Thay đổi từ thư viện' : 'Chọn từ thư viện' }}
+                                </button>
+
+                                <div class="relative">
+                                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                                    <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-white px-2 text-gray-400">Hoặc</span></div>
+                                </div>
+
+                                <input type="file" id="image_upload" @change="handleImageChange" class="hidden" accept="image/*" />
+                                <label
+                                    for="image_upload"
+                                    class="inline-block text-[13px] text-[#2271b1] hover:text-[#135e96] hover:underline cursor-pointer"
+                                >
+                                    Tải ảnh mới từ máy tính
+                                </label>
+                            </div>
+                            
                             <div v-if="form.errors.image_file" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.image_file }}</div>
 
                             <!-- URL Fallback -->
@@ -221,5 +246,12 @@ const submit = () => {
                 </div>
             </div>
         </form>
+
+        <!-- Media Library Modal -->
+        <MediaLibrary 
+            :show="showMediaLibrary" 
+            @close="showMediaLibrary = false" 
+            @select="handleImageSelect"
+        />
     </AdminLayout>
 </template>

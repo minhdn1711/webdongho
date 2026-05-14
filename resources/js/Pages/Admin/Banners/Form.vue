@@ -1,7 +1,8 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import MediaLibrary from '@/Components/MediaLibrary.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     banner: Object,
@@ -9,6 +10,7 @@ const props = defineProps({
 
 const isEdit = !!props.banner;
 const imagePreview = ref(props.banner ? props.banner.image_url : null);
+const showMediaLibrary = ref(false);
 
 const form = useForm({
     _method: isEdit ? 'put' : 'post',
@@ -16,8 +18,13 @@ const form = useForm({
     link: props.banner?.link ?? '',
     order: props.banner?.order ?? 0,
     is_active: props.banner?.is_active ?? true,
-    image: null,
+    image: props.banner?.image ?? null,
 });
+
+const handleImageSelect = (image) => {
+    form.image = image.url;
+    imagePreview.value = image.url;
+};
 
 const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -30,8 +37,6 @@ const handleImageChange = (e) => {
 const submit = () => {
     const url = isEdit ? route('admin.banners.update', props.banner.id) : route('admin.banners.store');
     
-    // Inertia doesn't support PUT with multipart/form-data directly, 
-    // but Laravel handles _method: 'PUT' in a POST request.
     form.post(url, {
         forceFormData: true,
     });
@@ -86,10 +91,27 @@ const submit = () => {
                             <div v-if="imagePreview" class="mb-3">
                                 <img :src="imagePreview" class="w-full h-auto rounded border border-[#c3c4c7]" />
                             </div>
-                            <input type="file" id="image" @change="handleImageChange" class="hidden" accept="image/*" />
-                            <label for="image" class="inline-block text-[13px] text-[#2271b1] hover:text-[#135e96] hover:underline cursor-pointer">
-                                {{ imagePreview ? 'Thay đổi ảnh' : 'Chọn ảnh banner' }}
-                            </label>
+                            
+                            <div class="flex flex-col gap-2">
+                                <button 
+                                    type="button"
+                                    @click="showMediaLibrary = true"
+                                    class="text-[13px] text-[#2271b1] hover:text-[#135e96] font-medium"
+                                >
+                                    {{ imagePreview ? 'Thay đổi từ thư viện' : 'Chọn từ thư viện' }}
+                                </button>
+
+                                <div class="relative">
+                                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-gray-400">Hoặc</span></div>
+                                </div>
+
+                                <input type="file" id="image" @change="handleImageChange" class="hidden" accept="image/*" />
+                                <label for="image" class="inline-block text-[13px] text-[#2271b1] hover:text-[#135e96] hover:underline cursor-pointer">
+                                    Tải ảnh mới từ máy tính
+                                </label>
+                            </div>
+                            
                             <div v-if="form.errors.image" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.image }}</div>
                         </div>
                     </div>
@@ -107,5 +129,12 @@ const submit = () => {
                 </div>
             </div>
         </form>
+
+        <!-- Media Library Modal -->
+        <MediaLibrary 
+            :show="showMediaLibrary" 
+            @close="showMediaLibrary = false" 
+            @select="handleImageSelect"
+        />
     </AdminLayout>
 </template>

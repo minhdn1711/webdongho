@@ -1,5 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import MediaLibrary from '@/Components/MediaLibrary.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -10,11 +11,16 @@ const props = defineProps({
 const isModalOpen = ref(false);
 const editingCategory = ref(null);
 const categoryToDelete = ref(null);
+const showMediaLibrary = ref(false);
 
 const form = useForm({
     name: '',
     image: '',
 });
+
+const handleImageSelect = (image) => {
+    form.image = image.url;
+};
 
 const openCreateModal = () => {
     editingCategory.value = null;
@@ -121,8 +127,17 @@ const deleteCategory = () => {
                         <div v-if="form.errors.name" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.name }}</div>
                     </div>
                     <div>
-                        <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Hình ảnh (URL)</label>
-                        <input v-model="form.image" type="text" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="https://..." />
+                        <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Hình ảnh (URL hoặc Thư viện)</label>
+                        <div class="flex gap-2">
+                            <input v-model="form.image" type="text" class="flex-1 border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="https://..." />
+                            <button 
+                                type="button" 
+                                @click="showMediaLibrary = true"
+                                class="px-3 py-1.5 bg-gray-100 border border-[#c3c4c7] rounded text-[12px] hover:bg-gray-200"
+                            >
+                                Thư viện
+                            </button>
+                        </div>
                     </div>
                     <div class="pt-2 flex justify-end gap-3 border-t border-[#dcdcde]">
                         <button type="button" @click="closeModal" class="px-4 py-1.5 text-[13px] font-medium text-[#50575e] bg-[#f0f0f1] hover:bg-[#dcdcde] rounded transition">
@@ -135,6 +150,13 @@ const deleteCategory = () => {
                 </form>
             </div>
         </div>
+
+        <!-- Media Library Modal -->
+        <MediaLibrary 
+            :show="showMediaLibrary" 
+            @close="showMediaLibrary = false" 
+            @select="handleImageSelect"
+        />
 
         <!-- Delete Confirmation Modal -->
         <div v-if="categoryToDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">

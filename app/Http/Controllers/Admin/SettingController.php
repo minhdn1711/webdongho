@@ -26,6 +26,9 @@ class SettingController extends Controller
             if ($request->hasFile($key)) {
                 $path = $request->file($key)->store('settings');
                 $value = Storage::url($path);
+            } elseif ($request->$key && is_string($request->$key) && str_starts_with($request->$key, 'http')) {
+                // Nếu là URL từ thư viện
+                $value = $request->$key;
             }
 
             Setting::updateOrCreate(

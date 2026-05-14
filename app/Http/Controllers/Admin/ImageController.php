@@ -9,10 +9,17 @@ use Inertia\Inertia;
 
 class ImageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $files = Storage::files('images');
+            $folders = ['images', 'banners', 'products'];
+            $allFiles = [];
+            foreach ($folders as $folder) {
+                if (Storage::exists($folder)) {
+                    $allFiles = array_merge($allFiles, Storage::allFiles($folder));
+                }
+            }
+
             $images = array_map(function ($file) {
                 return [
                     'name' => basename($file),
@@ -21,17 +28,24 @@ class ImageController extends Controller
                     'size' => Storage::size($file),
                     'last_modified' => Storage::lastModified($file),
                 ];
-            }, $files);
+            }, $allFiles);
 
             // Sort by last modified
             usort($images, function ($a, $b) {
                 return $b['last_modified'] <=> $a['last_modified'];
             });
 
+            if ($request->wantsJson()) {
+                return response()->json(['images' => $images]);
+            }
+
             return Inertia::render('Admin/Images/Index', [
                 'images' => $images
             ]);
         } catch (\Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
             return Inertia::render('Admin/Images/Index', [
                 'images' => [],
                 'error' => 'Lỗi kết nối Storage: ' . $e->getMessage()

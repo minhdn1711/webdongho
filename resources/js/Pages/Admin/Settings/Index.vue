@@ -1,5 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import MediaLibrary from '@/Components/MediaLibrary.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -19,12 +20,25 @@ const form = useForm({
     allow_out_of_stock_orders: (props.settings && props.settings.allow_out_of_stock_orders) || '0',
     low_stock_threshold: (props.settings && props.settings.low_stock_threshold) || '5',
     admin_notification_email: (props.settings && props.settings.admin_notification_email) || (props.settings && props.settings.contact_email) || '',
-    logo: null,
-    favicon: null,
+    logo: (props.settings && props.settings.logo) || null,
+    favicon: (props.settings && props.settings.favicon) || null,
 });
 
 const logoPreview = ref((props.settings && props.settings.logo) || null);
 const faviconPreview = ref((props.settings && props.settings.favicon) || null);
+const showMediaLibrary = ref(false);
+const activeField = ref(null);
+
+const openMediaLibrary = (field) => {
+    activeField.value = field;
+    showMediaLibrary.value = true;
+};
+
+const handleImageSelect = (image) => {
+    form[activeField.value] = image.url;
+    if (activeField.value === 'logo') logoPreview.value = image.url;
+    if (activeField.value === 'favicon') faviconPreview.value = image.url;
+};
 
 const handleFileUpload = (e, field) => {
     const file = e.target.files[0];
@@ -103,7 +117,10 @@ const submit = () => {
                                             <img v-if="logoPreview" :src="logoPreview" class="max-w-full max-h-full object-contain" />
                                             <span v-else class="text-gray-400 text-xs text-center p-2">Chưa có logo</span>
                                         </div>
-                                        <input type="file" @change="handleFileUpload($event, 'logo')" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                                        <div class="flex flex-col gap-2">
+                                            <button type="button" @click="openMediaLibrary('logo')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Chọn từ thư viện</button>
+                                            <input type="file" @change="handleFileUpload($event, 'logo')" class="text-sm text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -114,7 +131,10 @@ const submit = () => {
                                             <img v-if="faviconPreview" :src="faviconPreview" class="max-w-full max-h-full object-contain" />
                                             <span v-else class="text-gray-400 text-xs text-center p-1">Chưa có favicon</span>
                                         </div>
-                                        <input type="file" @change="handleFileUpload($event, 'favicon')" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                                        <div class="flex flex-col gap-2">
+                                            <button type="button" @click="openMediaLibrary('favicon')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Chọn từ thư viện</button>
+                                            <input type="file" @change="handleFileUpload($event, 'favicon')" class="text-sm text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
