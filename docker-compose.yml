@@ -8,9 +8,6 @@ services:
     container_name: webdongho-app
     restart: unless-stopped
     working_dir: /var/www
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     volumes:
       - .:/var/www
     networks:
