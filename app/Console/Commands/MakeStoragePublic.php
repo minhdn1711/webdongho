@@ -16,12 +16,19 @@ class MakeStoragePublic extends Command
         $this->info('Đang cấu hình Bucket thành Public...');
 
         try {
-            $disk = Storage::disk('s3');
-            $adapter = $disk->getAdapter();
-            
-            // Lấy client S3 từ adapter
-            $client = $adapter->getClient();
             $bucket = env('AWS_BUCKET');
+            
+            // Khởi tạo S3 Client thủ công từ cấu hình .env
+            $client = new S3Client([
+                'version' => 'latest',
+                'region'  => env('AWS_DEFAULT_REGION', 'us-east-1'),
+                'endpoint' => env('AWS_ENDPOINT'),
+                'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+                'credentials' => [
+                    'key'    => env('AWS_ACCESS_KEY_ID'),
+                    'secret' => env('AWS_SECRET_ACCESS_KEY'),
+                ],
+            ]);
 
             $policy = [
                 'Version' => '2012-10-17',
