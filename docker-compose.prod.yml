@@ -100,7 +100,7 @@ services:
       MINIO_ROOT_PASSWORD: password123 # Password (thay đổi cho bảo mật)
       # Cấu hình để MinIO biết nó đang chạy trên IP nào
       MINIO_SERVER_URL: "https://s3.lamtimeshop.vn"
-      MINIO_BROWSER_REDIRECT_URL: "https://s3.lamtimeshop.vn"
+      MINIO_BROWSER_REDIRECT_URL: "http://165.99.14.54:9001"
     command: server /data --console-address ":9001"
     networks:
       - webdongho-network
