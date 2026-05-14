@@ -9,6 +9,10 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
+        'banners' => \App\Models\Banner::where('is_active', true)->orderBy('order')->get()->map(function($banner) {
+            $banner->image_url = \Illuminate\Support\Facades\Storage::url($banner->image);
+            return $banner;
+        }),
         'categories' => \App\Models\Category::all(),
         'products' => \App\Models\Product::with('category')->where('is_featured', true)->get(),
         'latest_posts' => \App\Models\Post::where('is_published', true)->latest()->limit(3)->get(),
@@ -70,6 +74,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
 
     // Quản lý tin tức
     Route::resource('posts', App\Http\Controllers\Admin\PostController::class)->names('admin.posts');
+
+    // Quản lý Banner
+    Route::resource('banners', App\Http\Controllers\Admin\BannerController::class)->names('admin.banners');
 
     // Pancake POS Integration
     Route::prefix('pancake')->group(function () {

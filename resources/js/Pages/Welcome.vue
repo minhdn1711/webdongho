@@ -39,13 +39,38 @@ const addToCart = (product) => {
     <Head title="Julius Việt Nam - Đồng Hồ Hàn Quốc Chính Hãng" />
 
     <ClientLayout>
-        <!-- Hero Section -->
+        <!-- Hero Section (Banner Slider) -->
         <section class="relative h-[400px] md:h-[600px] bg-gray-200 overflow-hidden">
-            <img src="https://julius.vn/wp-content/uploads/2024/01/banner-web-1.jpg" class="w-full h-full object-cover" alt="Hero Banner" />
-            <div class="absolute inset-0 bg-black/20 flex flex-col justify-center px-6 md:px-20 text-white">
-                <h1 class="text-3xl md:text-6xl font-bold mb-4 italic uppercase">TIME TO SHINE</h1>
-                <p class="text-base md:text-xl mb-8 max-w-lg">Khám phá bộ sưu tập đồng hồ Hàn Quốc mới nhất từ Julius.</p>
-                <button class="bg-[#d10000] hover:bg-black text-white px-8 py-3 w-max transition font-bold uppercase tracking-widest text-sm">Mua Ngay</button>
+            <div v-if="banners && banners.length > 0" class="h-full w-full">
+                <div v-for="(banner, index) in banners" :key="banner.id" 
+                     v-show="currentBanner === index"
+                     class="absolute inset-0 transition-opacity duration-700">
+                    <img :src="banner.image_url" class="w-full h-full object-cover" :alt="banner.title" />
+                    <div class="absolute inset-0 bg-black/20 flex flex-col justify-center px-6 md:px-20 text-white">
+                        <h2 v-if="banner.title" class="text-3xl md:text-6xl font-bold mb-4 italic uppercase animate-fade-in-up">{{ banner.title }}</h2>
+                        <a v-if="banner.link" :href="banner.link" class="bg-[#d10000] hover:bg-black text-white px-8 py-3 w-max transition font-bold uppercase tracking-widest text-sm">
+                            Mua Ngay
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Dots Navigation -->
+                <div v-if="banners.length > 1" class="absolute bottom-6 left-0 right-0 flex justify-center gap-2">
+                    <button v-for="(_, index) in banners" :key="index"
+                            @click="currentBanner = index"
+                            :class="['w-2 h-2 rounded-full transition-all', currentBanner === index ? 'bg-white w-6' : 'bg-white/50']">
+                    </button>
+                </div>
+            </div>
+
+            <!-- Default Banner if none exists -->
+            <div v-else class="h-full relative">
+                <img src="https://julius.vn/wp-content/uploads/2024/01/banner-web-1.jpg" class="w-full h-full object-cover" alt="Hero Banner" />
+                <div class="absolute inset-0 bg-black/20 flex flex-col justify-center px-6 md:px-20 text-white">
+                    <h1 class="text-3xl md:text-6xl font-bold mb-4 italic uppercase">TIME TO SHINE</h1>
+                    <p class="text-base md:text-xl mb-8 max-w-lg">Khám phá bộ sưu tập đồng hồ Hàn Quốc mới nhất từ Julius.</p>
+                    <button class="bg-[#d10000] hover:bg-black text-white px-8 py-3 w-max transition font-bold uppercase tracking-widest text-sm">Mua Ngay</button>
+                </div>
             </div>
         </section>
 
