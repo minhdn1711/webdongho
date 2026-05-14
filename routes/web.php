@@ -14,7 +14,7 @@ Route::get('/', function () {
             return $banner;
         }),
         'categories' => \App\Models\Category::all(),
-        'products' => \App\Models\Product::with('category')->where('is_featured', true)->get(),
+        'products' => \App\Models\Product::with('categories')->where('is_featured', true)->get(),
         'latest_posts' => \App\Models\Post::where('is_published', true)->latest()->limit(3)->get(),
     ]);
 });

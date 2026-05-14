@@ -18,7 +18,9 @@ class CategoryController extends Controller
         $currentCategory = null;
         if ($slug) {
             $currentCategory = Category::where('slug', $slug)->firstOrFail();
-            $query->where('category_id', $currentCategory->id);
+            $query->whereHas('categories', function($q) use ($currentCategory) {
+                $q->where('categories.id', $currentCategory->id);
+            });
         }
 
         // Advanced Search & Filters

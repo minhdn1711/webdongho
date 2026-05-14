@@ -13,11 +13,14 @@ class ProductController extends Controller
 {
     public function show($slug)
     {
-        $product = Product::with(['category', 'reviews' => function($q) {
+        $product = Product::with(['categories', 'reviews' => function($q) {
             $q->where('is_approved', true)->latest();
         }])->where('slug', $slug)->firstOrFail();
         
-        $relatedProducts = Product::where('category_id', $product->category_id)
+        $categoryIds = $product->categories->pluck('id');
+        $relatedProducts = Product::whereHas('categories', function($q) use ($categoryIds) {
+                $q->whereIn('categories.id', $categoryIds) ->orWhereIn('category_id', $categoryIds);
+            })
             ->where('id', '!=', $product->id)
             ->limit(4)
             ->get();

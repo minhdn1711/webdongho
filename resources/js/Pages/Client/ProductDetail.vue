@@ -65,7 +65,7 @@ const addToCart = () => {
             <nav class="flex mb-8 text-xs font-bold uppercase tracking-widest text-gray-400">
                 <Link href="/" class="hover:text-black">Trang chủ</Link>
                 <span class="mx-2">/</span>
-                <Link v-if="product.category" :href="route('category.show', product.category.slug)" class="hover:text-black">{{ product.category.name }}</Link>
+                <Link v-if="product.categories && product.categories.length > 0" :href="route('category.show', product.categories[0].slug)" class="hover:text-black">{{ product.categories[0].name }}</Link>
                 <span class="mx-2">/</span>
                 <span class="text-gray-900">{{ product.name }}</span>
             </nav>
@@ -139,7 +139,7 @@ const addToCart = () => {
                         <div class="space-y-4 text-xs font-bold uppercase tracking-widest">
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-400">Danh mục:</span>
-                                <Link v-if="product.category" :href="route('category.show', product.category.slug)" class="hover:text-[#d10000]">{{ product.category.name }}</Link>
+                                <Link v-if="product.categories && product.categories.length > 0" :href="route('category.show', product.categories[0].slug)" class="hover:text-[#d10000]">{{ product.categories[0].name }}</Link>
                                 <span v-else>Đang cập nhật</span>
                             </div>
                             <div class="flex items-center gap-2">
