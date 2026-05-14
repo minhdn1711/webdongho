@@ -31,6 +31,13 @@ class MakeStoragePublic extends Command
                 ],
             ]);
 
+            // Kiểm tra và tạo bucket nếu chưa có
+            if (!$client->doesBucketExist($bucket)) {
+                $this->info("Bucket '{$bucket}' chưa tồn tại. Đang tiến hành tạo...");
+                $client->createBucket(['Bucket' => $bucket]);
+                $this->info("Đã tạo Bucket '{$bucket}' thành công.");
+            }
+
             $policy = [
                 'Version' => '2012-10-17',
                 'Statement' => [
