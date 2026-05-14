@@ -108,16 +108,15 @@ services:
     image: quay.io/minio/minio:latest
     container_name: minio
     ports:
-      - "9000:9000" # Cổng API (để ứng dụng kết nối)
-      - "9001:9001" # Cổng Console (để bạn vào quản lý bằng web)
+      - "9005:9000" # Changed from 9000 to 9005
+      - "9006:9001" # Changed from 9001 to 9006
     volumes:
-      - ./data:/data
+      - ./data/minio:/data
     environment:
-      MINIO_ROOT_USER: admin           # Username đăng nhập
-      MINIO_ROOT_PASSWORD: password123 # Password (thay đổi cho bảo mật)
-      # Cấu hình để MinIO biết nó đang chạy trên IP nào
-      MINIO_SERVER_URL: "http://165.99.14.54:9000"
-      MINIO_BROWSER_REDIRECT_URL: "http://165.99.14.54:9001"
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+      MINIO_SERVER_URL: "http://localhost:9005"
+      MINIO_BROWSER_REDIRECT_URL: "http://localhost:9006"
     command: server /data --console-address ":9001"
     restart: always
 
