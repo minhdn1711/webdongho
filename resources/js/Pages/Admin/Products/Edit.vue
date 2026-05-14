@@ -15,7 +15,7 @@ const showMediaLibrary = ref(false);
 
 const form = useForm({
     _method: 'put',
-    category_id: props.product.category_id,
+    category_ids: props.product.categories.map(c => c.id),
     name: props.product.name,
     short_description: props.product.short_description,
     description: props.product.description,
@@ -187,11 +187,21 @@ const submit = () => {
                             <span class="text-[13px] font-semibold text-[#1d2327]">Danh mục</span>
                         </div>
                         <div class="p-3">
-                            <select v-model="form.category_id" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" required>
-                                <option value="" disabled>— Chọn danh mục —</option>
-                                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-                            </select>
-                            <div v-if="form.errors.category_id" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.category_id }}</div>
+                            <div class="max-h-[200px] overflow-y-auto border border-[#dcdcde] p-3 space-y-2">
+                                <div v-for="cat in categories" :key="cat.id" class="flex items-center">
+                                    <input 
+                                        type="checkbox" 
+                                        :id="'cat-'+cat.id" 
+                                        :value="cat.id" 
+                                        v-model="form.category_ids"
+                                        class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
+                                    />
+                                    <label :for="'cat-'+cat.id" class="ml-2 text-[13px] text-[#50575e] cursor-pointer hover:text-[#2271b1]">
+                                        {{ cat.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div v-if="form.errors.category_ids" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.category_ids }}</div>
                         </div>
                     </div>
 

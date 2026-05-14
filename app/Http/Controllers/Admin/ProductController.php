@@ -16,7 +16,7 @@ class ProductController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Products/Index', [
-            'products' => Product::with('category')->latest()->get()
+            'products' => Product::with('categories')->latest()->get()
         ]);
     }
 
@@ -30,7 +30,8 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id',
             'name' => 'required|string|max:255',
             'short_description' => 'nullable|string',
             'description' => 'nullable|string',
@@ -44,7 +45,7 @@ class ProductController extends Controller
             'barcode' => 'nullable|string|max:255',
         ]);
 
-        $data = $request->except('image_file');
+        $data = $request->except(['image_file', 'category_ids']);
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image_file')) {
@@ -53,6 +54,7 @@ class ProductController extends Controller
         }
 
         $product = Product::create($data);
+        $product->categories()->sync($request->category_ids);
 
         event(new ProductSaved($product));
 
@@ -62,7 +64,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         return Inertia::render('Admin/Products/Edit', [
-            'product' => $product,
+            'product' => $product->load('categories'),
             'categories' => Category::all()
         ]);
     }
@@ -70,7 +72,8 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id',
             'name' => 'required|string|max:255',
             'short_description' => 'nullable|string',
             'description' => 'nullable|string',
@@ -84,7 +87,7 @@ class ProductController extends Controller
             'barcode' => 'nullable|string|max:255',
         ]);
 
-        $data = $request->except('image_file');
+        $data = $request->except(['image_file', 'category_ids']);
         $data['slug'] = Str::slug($request->name);
 
         if ($request->hasFile('image_file')) {
@@ -99,6 +102,7 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+        $product->categories()->sync($request->category_ids);
 
         event(new ProductSaved($product));
 

@@ -24,9 +24,9 @@ class Product extends Model
         'barcode'
     ];
 
-    public function category()
+    public function categories()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class);
     }
 
     public function stockHistories()

@@ -70,7 +70,7 @@ const deleteProduct = () => {
                             </div>
                         </td>
                         <td class="px-3 py-2">
-                            <span class="text-[13px] text-[#50575e]">{{ product.category?.name }}</span>
+                            <span class="text-[13px] text-[#50575e]">{{ product.categories.map(c => c.name).join(', ') || '—' }}</span>
                         </td>
                         <td class="px-3 py-2 text-[13px]">
                             <div v-if="product.sale_price" class="text-[#d63638] font-semibold">{{ formatPrice(product.sale_price) }}</div>
