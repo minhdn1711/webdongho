@@ -63,6 +63,11 @@ class CategoryController extends Controller
         if ($category->products()->count() > 0) {
             return redirect()->back()->withErrors(['message' => 'Không thể xóa danh mục đang có sản phẩm.']);
         }
+
+        if ($category->children()->count() > 0) {
+            return redirect()->back()->withErrors(['message' => 'Không thể xóa danh mục đang có danh mục con.']);
+        }
+
         $category->delete();
         return redirect()->back()->with('success', 'Danh mục đã được xóa thành công!');
     }

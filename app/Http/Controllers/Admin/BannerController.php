@@ -30,7 +30,7 @@ class BannerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'image' => 'required',
+            'image' => $request->hasFile('image') ? 'image|mimes:jpeg,png,jpg,gif,webp|max:2048' : 'required|string',
             'title' => 'nullable|string|max:255',
             'link' => 'nullable|url',
             'order' => 'integer',
@@ -66,7 +66,7 @@ class BannerController extends Controller
     public function update(Request $request, Banner $banner)
     {
         $request->validate([
-            'image' => 'nullable',
+            'image' => $request->hasFile('image') ? 'image|mimes:jpeg,png,jpg,gif,webp|max:2048' : 'nullable|string',
             'title' => 'nullable|string|max:255',
             'link' => 'nullable|url',
             'order' => 'integer',

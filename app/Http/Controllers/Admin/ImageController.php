@@ -65,7 +65,7 @@ class ImageController extends Controller
             }
         }
 
-        return back()->with('success', 'Tải ảnh lên thành công!');
+        return redirect()->back()->with('success', 'Ảnh đã được tải lên thành công!');
     }
 
     public function destroy(Request $request)
