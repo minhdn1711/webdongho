@@ -37,7 +37,7 @@ const formatPrice = (price) => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
+    <div class="min-h-screen bg-white font-sans text-gray-900">
         <!-- Top Bar -->
         <div class="bg-[#d10000] text-white text-[10px] md:text-xs py-2 px-4 flex justify-between items-center overflow-hidden">
             <div class="hidden md:block truncate">{{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}</div>
