@@ -37,11 +37,11 @@ const formatPrice = (price) => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-white font-sans text-gray-900">
+    <div class="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
         <!-- Top Bar -->
-        <div class="bg-[#d10000] text-white text-[10px] md:text-xs py-2 px-4 flex justify-between items-center">
-            <div class="hidden md:block">{{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}</div>
-            <div class="flex gap-4 mx-auto md:mx-0 font-bold uppercase tracking-tighter md:tracking-widest">
+        <div class="bg-[#d10000] text-white text-[10px] md:text-xs py-2 px-4 flex justify-between items-center overflow-hidden">
+            <div class="hidden md:block truncate">{{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}</div>
+            <div class="flex gap-2 md:gap-4 mx-auto md:mx-0 font-bold uppercase tracking-tighter md:tracking-widest flex-wrap justify-center">
                 <span>Hotline: {{ settings.contact_phone || '1900 2697' }}</span>
                 <div class="flex gap-2">
                     <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="hover:underline">Tài khoản</Link>

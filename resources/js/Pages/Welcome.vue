@@ -118,7 +118,7 @@ const formatDate = (dateString) => {
 
         <!-- Why Choose Us -->
         <section class="bg-gray-50 py-16 border-y border-gray-100">
-            <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                 <div class="flex flex-col items-center text-center px-6">
                     <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-gray-100">
                         <svg class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
