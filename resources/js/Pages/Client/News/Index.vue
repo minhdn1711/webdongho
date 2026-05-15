@@ -16,7 +16,7 @@ const formatDate = (dateString) => {
 </script>
 
 <template>
-    <Head title="Tin tức & Sự kiện - Julius Việt Nam" />
+    <Head title="Tin tức & Sự kiện - Lamtime Shop" />
 
     <ClientLayout>
         <div class="bg-gray-50 py-10 md:py-20">
@@ -36,7 +36,7 @@ const formatDate = (dateString) => {
                             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                 <span>{{ formatDate(post.created_at) }}</span>
                                 <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                <span>Julius Team</span>
+                                <span>Miliwebseo Team</span>
                             </div>
                             <h3 class="text-lg font-bold mb-4 group-hover:text-[#d10000] transition line-clamp-2">{{ post.title }}</h3>
                             <p class="text-sm text-gray-500 line-clamp-3 mb-6 flex-1">

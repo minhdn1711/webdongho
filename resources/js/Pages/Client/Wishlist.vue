@@ -10,7 +10,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <Head title="Sản phẩm yêu thích - Julius Việt Nam" />
+    <Head title="Sản phẩm yêu thích - Lamtime Shop" />
 
     <ClientLayout>
         <div class="max-w-7xl mx-auto px-4 py-16">

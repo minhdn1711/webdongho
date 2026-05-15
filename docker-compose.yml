@@ -111,10 +111,12 @@ services:
       - ./data/minio:/data
     environment:
       MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
-      MINIO_SERVER_URL: "http://localhost:9005"
-      MINIO_BROWSER_REDIRECT_URL: "http://localhost:9006"
+      MINIO_ROOT_PASSWORD: admin123
+      MINIO_SERVER_URL: "https://s3.lamtimeshop.vn"
+      MINIO_BROWSER_REDIRECT_URL: "http://165.99.14.54:9001"
     command: server /data --console-address ":9001"
+    networks:
+      - webdongho-network
     restart: always
 
 networks:

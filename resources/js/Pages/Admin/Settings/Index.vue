@@ -25,10 +25,16 @@ const form = useForm({
     contact_zalo: (props.settings && props.settings.contact_zalo) || '',
     contact_messenger: (props.settings && props.settings.contact_messenger) || '',
     contact_phone: (props.settings && props.settings.contact_phone) || '',
+    contact_zalo_icon: (props.settings && props.settings.contact_zalo_icon) || null,
+    contact_messenger_icon: (props.settings && props.settings.contact_messenger_icon) || null,
+    contact_phone_icon: (props.settings && props.settings.contact_phone_icon) || null,
 });
 
 const logoPreview = ref((props.settings && props.settings.logo) || null);
 const faviconPreview = ref((props.settings && props.settings.favicon) || null);
+const zaloIconPreview = ref((props.settings && props.settings.contact_zalo_icon) || null);
+const messengerIconPreview = ref((props.settings && props.settings.contact_messenger_icon) || null);
+const phoneIconPreview = ref((props.settings && props.settings.contact_phone_icon) || null);
 const showMediaLibrary = ref(false);
 const activeField = ref(null);
 
@@ -41,6 +47,9 @@ const handleImageSelect = (image) => {
     form[activeField.value] = image.url;
     if (activeField.value === 'logo') logoPreview.value = image.url;
     if (activeField.value === 'favicon') faviconPreview.value = image.url;
+    if (activeField.value === 'contact_zalo_icon') zaloIconPreview.value = image.url;
+    if (activeField.value === 'contact_messenger_icon') messengerIconPreview.value = image.url;
+    if (activeField.value === 'contact_phone_icon') phoneIconPreview.value = image.url;
 };
 
 const handleFileUpload = (e, field) => {
@@ -51,9 +60,21 @@ const handleFileUpload = (e, field) => {
         reader.onload = (e) => {
             if (field === 'logo') logoPreview.value = e.target.result;
             if (field === 'favicon') faviconPreview.value = e.target.result;
+            if (field === 'contact_zalo_icon') zaloIconPreview.value = e.target.result;
+            if (field === 'contact_messenger_icon') messengerIconPreview.value = e.target.result;
+            if (field === 'contact_phone_icon') phoneIconPreview.value = e.target.result;
         };
         reader.readAsDataURL(file);
     }
+};
+
+const removeImage = (field) => {
+    form[field] = null;
+    if (field === 'logo') logoPreview.value = null;
+    if (field === 'favicon') faviconPreview.value = null;
+    if (field === 'contact_zalo_icon') zaloIconPreview.value = null;
+    if (field === 'contact_messenger_icon') messengerIconPreview.value = null;
+    if (field === 'contact_phone_icon') phoneIconPreview.value = null;
 };
 
 const submit = () => {
@@ -114,30 +135,39 @@ const submit = () => {
                                 <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Hình ảnh & Thương hiệu</h3>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Logo</label>
-                                    <div class="mt-2 flex items-center space-x-4">
-                                        <div class="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
-                                            <img v-if="logoPreview" :src="logoPreview" class="max-w-full max-h-full object-contain" />
-                                            <span v-else class="text-gray-400 text-xs text-center p-2">Chưa có logo</span>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                                    <div class="relative w-32 h-32 group">
+                                        <div 
+                                            @click="openMediaLibrary('logo')"
+                                            class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer hover:border-[#2271b1] hover:bg-gray-100 transition"
+                                        >
+                                            <img v-if="logoPreview" :src="logoPreview" class="w-full h-full object-contain p-2" />
+                                            <div v-else class="text-center">
+                                                <svg class="w-8 h-8 text-gray-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+                                                <span class="text-[10px] text-gray-400">Chọn Logo</span>
+                                            </div>
                                         </div>
-                                        <div class="flex flex-col gap-2">
-                                            <button type="button" @click="openMediaLibrary('logo')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Chọn từ thư viện</button>
-                                            <input type="file" @change="handleFileUpload($event, 'logo')" class="text-sm text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-                                        </div>
+                                        <button v-if="logoPreview" @click.prevent="removeImage('logo')" type="button" class="absolute -top-2 -right-2 bg-white text-red-600 rounded-full p-1 shadow-md hover:bg-red-50 border border-gray-200 z-10">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Favicon</label>
-                                    <div class="mt-2 flex items-center space-x-4">
-                                        <div class="w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
-                                            <img v-if="faviconPreview" :src="faviconPreview" class="max-w-full max-h-full object-contain" />
-                                            <span v-else class="text-gray-400 text-xs text-center p-1">Chưa có favicon</span>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+                                    <div class="relative w-16 h-16 group">
+                                        <div 
+                                            @click="openMediaLibrary('favicon')"
+                                            class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer hover:border-[#2271b1] hover:bg-gray-100 transition"
+                                        >
+                                            <img v-if="faviconPreview" :src="faviconPreview" class="w-full h-full object-contain p-1" />
+                                            <div v-else class="text-center">
+                                                <svg class="w-5 h-5 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+                                            </div>
                                         </div>
-                                        <div class="flex flex-col gap-2">
-                                            <button type="button" @click="openMediaLibrary('favicon')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Chọn từ thư viện</button>
-                                            <input type="file" @change="handleFileUpload($event, 'favicon')" class="text-sm text-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-                                        </div>
+                                        <button v-if="faviconPreview" @click.prevent="removeImage('favicon')" type="button" class="absolute -top-2 -right-2 bg-white text-red-600 rounded-full p-1 shadow-md hover:bg-red-50 border border-gray-200 z-10">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -147,16 +177,57 @@ const submit = () => {
                                 <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Cấu hình nút liên hệ (Zalo, Messenger, Hotlline)</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Link Zalo</label>
-                                        <input v-model="form.contact_zalo" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="https://zalo.me/..." />
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Zalo</label>
+                                        <input v-model="form.contact_zalo" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm mb-3" placeholder="Link Zalo..." />
+                                        
+                                        <div class="relative w-12 h-12 group">
+                                            <div 
+                                                @click="openMediaLibrary('contact_zalo_icon')"
+                                                class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer hover:border-[#2271b1] hover:bg-gray-100 transition"
+                                            >
+                                                <img v-if="zaloIconPreview" :src="zaloIconPreview" class="w-full h-full object-contain" />
+                                                <svg v-else class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+                                            </div>
+                                            <button v-if="zaloIconPreview" @click.prevent="removeImage('contact_zalo_icon')" type="button" class="absolute -top-2 -right-2 bg-white text-red-600 rounded-full p-1 shadow-md hover:bg-red-50 border border-gray-200 z-10">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Link Messenger</label>
-                                        <input v-model="form.contact_messenger" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="https://m.me/..." />
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Messenger</label>
+                                        <input v-model="form.contact_messenger" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm mb-3" placeholder="Link Messenger..." />
+                                        
+                                        <div class="relative w-12 h-12 group">
+                                            <div 
+                                                @click="openMediaLibrary('contact_messenger_icon')"
+                                                class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer hover:border-[#2271b1] hover:bg-gray-100 transition"
+                                            >
+                                                <img v-if="messengerIconPreview" :src="messengerIconPreview" class="w-full h-full object-contain" />
+                                                <svg v-else class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+                                            </div>
+                                            <button v-if="messengerIconPreview" @click.prevent="removeImage('contact_messenger_icon')" type="button" class="absolute -top-2 -right-2 bg-white text-red-600 rounded-full p-1 shadow-md hover:bg-red-50 border border-gray-200 z-10">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Số Hotline (Nút gọi)</label>
-                                        <input v-model="form.contact_phone" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="0123456789" />
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Hotline (Nút gọi)</label>
+                                        <input v-model="form.contact_phone" type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm mb-3" placeholder="Số điện thoại..." />
+                                        
+                                        <div class="relative w-12 h-12 group">
+                                            <div 
+                                                @click="openMediaLibrary('contact_phone_icon')"
+                                                class="w-full h-full border-2 border-dashed border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer hover:border-[#2271b1] hover:bg-gray-100 transition"
+                                            >
+                                                <img v-if="phoneIconPreview" :src="phoneIconPreview" class="w-full h-full object-contain" />
+                                                <svg v-else class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+                                            </div>
+                                            <button v-if="phoneIconPreview" @click.prevent="removeImage('contact_phone_icon')" type="button" class="absolute -top-2 -right-2 bg-white text-red-600 rounded-full p-1 shadow-md hover:bg-red-50 border border-gray-200 z-10">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -198,4 +269,11 @@ const submit = () => {
             </div>
         </div>
     </AdminLayout>
+
+    <!-- Media Library Modal -->
+    <MediaLibrary 
+        :show="showMediaLibrary" 
+        @close="showMediaLibrary = false" 
+        @select="handleImageSelect"
+    />
 </template>

@@ -18,32 +18,20 @@ const props = defineProps({
 
 const currentBanner = ref(0);
 const bannerInterval = ref(null);
-const showBackToTop = ref(false);
-
 const nextBanner = () => {
     if (props.banners && props.banners.length > 0) {
         currentBanner.value = (currentBanner.value + 1) % props.banners.length;
     }
 };
 
-const handleScroll = () => {
-    showBackToTop.value = window.scrollY > 500;
-};
-
-const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
 onMounted(() => {
     if (props.banners && props.banners.length > 1) {
         bannerInterval.value = setInterval(nextBanner, 5000);
     }
-    window.addEventListener('scroll', handleScroll);
 });
 
 onUnmounted(() => {
     if (bannerInterval.value) clearInterval(bannerInterval.value);
-    window.removeEventListener('scroll', handleScroll);
 });
 
 const formatDate = (dateString) => {
@@ -56,7 +44,7 @@ const formatDate = (dateString) => {
 </script>
 
 <template>
-    <Head title="Julius Việt Nam - Đồng Hồ Hàn Quốc Chính Hãng" />
+    <Head title="Lamtime Shop - Đồng Hồ Hàn Quốc Chính Hãng" />
 
     <ClientLayout>
         <!-- Hero Section (Banner Slider) -->
@@ -188,44 +176,10 @@ const formatDate = (dateString) => {
             </div>
         </section>
 
-        <!-- Floating Action Buttons -->
-        <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-4">
-            <!-- Contact Buttons -->
-            <div class="flex flex-col gap-3">
-                <a v-if="settings.contact_phone" :href="'tel:' + settings.contact_phone" class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition group relative">
-                    <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                    <span class="absolute right-full mr-3 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Gọi ngay: {{ settings.contact_phone }}</span>
-                </a>
-                <a v-if="settings.contact_zalo" :href="settings.contact_zalo" target="_blank" class="w-12 h-12 bg-[#0068ff] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition group relative">
-                    <span class="font-bold text-xs italic">Zalo</span>
-                    <span class="absolute right-full mr-3 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Chat Zalo</span>
-                </a>
-                <a v-if="settings.contact_messenger" :href="settings.contact_messenger" target="_blank" class="w-12 h-12 bg-[#0084ff] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition group relative">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.913 1.455 5.51 3.734 7.263.196.15.31.385.31.636 0 .474-.236 1.344-.64 2.228-.086.19.103.38.283.29 1.118-.553 2.164-1.285 2.68-1.57.195-.107.426-.118.63-.03 1.127.487 2.378.76 3.703.76 5.523 0 10-4.145 10-9.258S17.523 2 12 2z" /></svg>
-                    <span class="absolute right-full mr-3 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Messenger</span>
-                </a>
-            </div>
-
-            <!-- Back to Top Button -->
-            <button 
-                v-show="showBackToTop"
-                @click="scrollToTop"
-                class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#d10000] transition animate-bounce-subtle"
-            >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-            </button>
-        </div>
     </ClientLayout>
 </template>
 
 <style scoped>
-@keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-.animate-bounce-subtle {
-    animation: bounce-subtle 2s infinite;
-}
 @keyframes fade-in-up {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }

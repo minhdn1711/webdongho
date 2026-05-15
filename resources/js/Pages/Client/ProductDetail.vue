@@ -58,7 +58,7 @@ const addToCart = () => {
 </script>
 
 <template>
-    <Head :title="product.name + ' - Julius Việt Nam'" />
+    <Head :title="product.name + ' - Lamtime Shop'" />
 
     <ClientLayout>
         <div class="max-w-7xl mx-auto px-4 py-8 md:py-16">
@@ -185,7 +185,7 @@ const addToCart = () => {
                 <div v-if="activeTab === 'description'" class="py-12 prose max-w-none">
                     <p v-if="product.description" v-html="product.description"></p>
                     <div v-else class="space-y-6">
-                        <p>Julius là thương hiệu đồng hồ nổi tiếng đến từ Hàn Quốc, được yêu thích bởi các thiết kế thời trang, đa dạng và giá thành hợp lý. Mỗi chiếc đồng hồ Julius đều được chế tác tỉ mỉ, sử dụng bộ máy bền bỉ và chất liệu an toàn.</p>
+                        <p>Lamtime là thương hiệu đồng hồ nổi tiếng đến từ Hàn Quốc, được yêu thích bởi các thiết kế thời trang, đa dạng và giá thành hợp lý. Mỗi chiếc đồng hồ Lamtime đều được chế tác tỉ mỉ, sử dụng bộ máy bền bỉ và chất liệu an toàn.</p>
                         <ul class="list-disc pl-5 space-y-2">
                             <li>Chất liệu mặt kính: Mineral Crystal (kính khoáng) chống va đập tốt.</li>
                             <li>Chất liệu dây: Dây da cao cấp hoặc thép không gỉ.</li>

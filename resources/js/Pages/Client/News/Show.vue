@@ -17,7 +17,7 @@ const formatDate = (dateString) => {
 </script>
 
 <template>
-    <Head :title="post.title + ' - Julius Việt Nam'" />
+    <Head :title="post.title + ' - Lamtime Shop'" />
 
     <ClientLayout>
         <div class="bg-white py-10 md:py-20">
@@ -35,7 +35,7 @@ const formatDate = (dateString) => {
                             </div>
                             <div class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                <span>Bởi: Julius Team</span>
+                                <span>Bởi: Miliwebseo Team</span>
                             </div>
                         </div>
 

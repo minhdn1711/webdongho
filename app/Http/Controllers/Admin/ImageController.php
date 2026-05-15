@@ -43,8 +43,16 @@ class ImageController extends Controller
                 'images' => $images
             ]);
         } catch (\Exception $e) {
+            \Log::error('Media Library Error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+
             if ($request->wantsJson()) {
-                return response()->json(['error' => $e->getMessage()], 500);
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'debug_info' => 'Kiểm tra log để biết thêm chi tiết'
+                ], 500);
             }
             return Inertia::render('Admin/Images/Index', [
                 'images' => [],
