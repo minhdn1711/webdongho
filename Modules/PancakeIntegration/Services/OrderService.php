@@ -22,7 +22,8 @@ class OrderService
         $token = PancakeSetting::getValue('pancake_api_token');
         $shopId = PancakeSetting::getValue('pancake_shop_id');
 
-        if (!$token || !$shopId || PancakeSetting::getValue('pancake_sync_orders', '1') !== '1') {
+        $syncEnabled = PancakeSetting::getValue('pancake_sync_orders', '1');
+        if (!$token || !$shopId || !($syncEnabled == '1' || $syncEnabled === true || $syncEnabled === 'true')) {
             return false;
         }
 

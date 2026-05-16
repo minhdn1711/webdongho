@@ -9,6 +9,6 @@ class PancakeCategoryListener
 {
     public function handle(CategorySaved $event)
     {
-        SyncCategoryJob::dispatch($event->category)->onQueue('pancake');
+        SyncCategoryJob::dispatch($event->category);
     }
 }

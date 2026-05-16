@@ -11,7 +11,6 @@ class PancakeProductListener
     public function handle(ProductSaved $event): void
     {
         SyncProductJob::dispatch($event->product)
-            ->onQueue('pancake')
-            ->delay(now()->addSeconds(5));
+            ->delay(now()->addSeconds(2));
     }
 }

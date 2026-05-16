@@ -10,7 +10,6 @@ class PancakeOrderListener
     public function handle(OrderPlaced $event): void
     {
         SyncOrderJob::dispatch($event->order)
-            ->onQueue('pancake')
-            ->delay(now()->addSeconds(10));
+            ->delay(now()->addSeconds(5));
     }
 }
