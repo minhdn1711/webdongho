@@ -47,6 +47,7 @@ class ProductController extends Controller
 
         $data = $request->except(['image_file', 'category_ids']);
         $data['slug'] = Str::slug($request->name);
+        $data['category_id'] = $request->category_ids[0] ?? null;
 
         if ($request->hasFile('image_file')) {
             $path = $request->file('image_file')->store('products');
@@ -89,6 +90,7 @@ class ProductController extends Controller
 
         $data = $request->except(['image_file', 'category_ids']);
         $data['slug'] = Str::slug($request->name);
+        $data['category_id'] = $request->category_ids[0] ?? null;
 
         if ($request->hasFile('image_file')) {
             // Delete old image if it was a local file

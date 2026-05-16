@@ -42,7 +42,7 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'settings' => Setting::pluck('value', 'key')->all(),
-            'pancake_configured' => \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_api_token') && \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_shop_id'),
+            'pancake_configured' => !!(\Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_api_token') && \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_shop_id')),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
