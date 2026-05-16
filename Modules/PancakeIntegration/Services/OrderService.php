@@ -19,7 +19,10 @@ class OrderService
 
     public function syncOrder(Order $order)
     {
-        if (PancakeSetting::getValue('pancake_sync_orders', '1') !== '1') {
+        $token = PancakeSetting::getValue('pancake_api_token');
+        $shopId = PancakeSetting::getValue('pancake_shop_id');
+
+        if (!$token || !$shopId || PancakeSetting::getValue('pancake_sync_orders', '1') !== '1') {
             return false;
         }
 

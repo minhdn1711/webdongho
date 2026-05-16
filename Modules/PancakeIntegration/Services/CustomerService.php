@@ -18,6 +18,13 @@ class CustomerService
 
     public function syncCustomer(User $user)
     {
+        $token = \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_api_token');
+        $shopId = \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_shop_id');
+
+        if (!$token || !$shopId) {
+            return false;
+        }
+
         try {
             $mapping = PancakeCustomerMapping::where('user_id', $user->id)->first();
 

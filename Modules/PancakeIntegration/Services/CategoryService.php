@@ -19,7 +19,10 @@ class CategoryService
 
     public function syncCategory(Category $category)
     {
-        if (PancakeSetting::getValue('pancake_sync_products', '1') !== '1') {
+        $token = PancakeSetting::getValue('pancake_api_token');
+        $shopId = PancakeSetting::getValue('pancake_shop_id');
+
+        if (!$token || !$shopId || PancakeSetting::getValue('pancake_sync_products', '1') !== '1') {
             return false;
         }
 
