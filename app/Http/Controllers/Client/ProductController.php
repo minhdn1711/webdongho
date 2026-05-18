@@ -13,9 +13,11 @@ class ProductController extends Controller
 {
     public function show($slug)
     {
-        $product = Product::with(['categories', 'reviews' => function($q) {
-            $q->where('is_approved', true)->latest();
-        }])->where('slug', $slug)->firstOrFail();
+        $product = Product::with([
+            'categories',
+            'productImages',
+            'reviews' => fn($q) => $q->where('is_approved', true)->latest(),
+        ])->where('slug', $slug)->firstOrFail();
         
         $categoryIds = $product->categories->pluck('id')->toArray();
         if ($product->category_id) {

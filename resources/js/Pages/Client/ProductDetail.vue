@@ -16,6 +16,43 @@ const props = defineProps({
     reviewCount: Number,
 });
 
+// Build full gallery: main image first, then extra images
+const allImages = computed(() => {
+    const imgs = [];
+    if (props.product.image) imgs.push(props.product.image);
+    if (props.product.product_images) {
+        for (const pi of props.product.product_images) {
+            imgs.push(pi.image_url);
+        }
+    }
+    return imgs;
+});
+
+const activeImage = ref(allImages.value[0] || '');
+const lightboxOpen = ref(false);
+
+const setActiveImage = (url) => {
+    activeImage.value = url;
+};
+
+const openLightbox = () => {
+    lightboxOpen.value = true;
+};
+
+const closeLightbox = () => {
+    lightboxOpen.value = false;
+};
+
+const prevImage = () => {
+    const idx = allImages.value.indexOf(activeImage.value);
+    activeImage.value = allImages.value[(idx - 1 + allImages.value.length) % allImages.value.length];
+};
+
+const nextImage = () => {
+    const idx = allImages.value.indexOf(activeImage.value);
+    activeImage.value = allImages.value[(idx + 1) % allImages.value.length];
+};
+
 const quantity = ref(1);
 const activeTab = ref('description');
 
@@ -72,10 +109,53 @@ const addToCart = () => {
             </nav>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-                <!-- Product Gallery -->
-                <div class="space-y-4">
-                    <div class="aspect-square bg-gray-50 overflow-hidden border border-gray-100 group">
-                        <img :src="product.image" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" :alt="product.name" />
+                <!-- ===== Product Gallery (Flatsome style) ===== -->
+                <div>
+                    <!-- Main image -->
+                    <div
+                        class="relative aspect-square bg-gray-50 overflow-hidden border border-gray-100 mb-3 cursor-zoom-in group"
+                        @click="openLightbox"
+                    >
+                        <img
+                            :src="activeImage"
+                            :key="activeImage"
+                            class="w-full h-full object-cover transition-opacity duration-300"
+                            :alt="product.name"
+                        />
+                        <!-- Zoom icon -->
+                        <div class="absolute bottom-3 right-3 bg-white/80 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition">
+                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                        </div>
+                        <!-- Prev/Next arrows (only when multiple images) -->
+                        <template v-if="allImages.length > 1">
+                            <button
+                                @click.stop="prevImage"
+                                class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow transition opacity-0 group-hover:opacity-100"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <button
+                                @click.stop="nextImage"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow transition opacity-0 group-hover:opacity-100"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </template>
+                    </div>
+
+                    <!-- Thumbnails strip -->
+                    <div v-if="allImages.length > 1" class="flex gap-2 overflow-x-auto pb-1">
+                        <button
+                            v-for="(img, idx) in allImages"
+                            :key="idx"
+                            @click="setActiveImage(img)"
+                            class="flex-shrink-0 w-16 h-16 border-2 rounded overflow-hidden transition"
+                            :class="activeImage === img ? 'border-[#d10000]' : 'border-gray-200 hover:border-gray-400'"
+                        >
+                            <img :src="img" class="w-full h-full object-cover" :alt="`Ảnh ${idx + 1}`" />
+                        </button>
                     </div>
                 </div>
 
@@ -83,7 +163,7 @@ const addToCart = () => {
                 <div class="flex flex-col">
                     <div class="mb-6">
                         <h1 class="text-3xl md:text-4xl font-bold mb-4 italic uppercase tracking-tight">{{ product.name }}</h1>
-                        
+
                         <div class="flex items-center gap-4 mb-6">
                             <div class="flex items-center text-yellow-400">
                                 <template v-for="i in 5" :key="i">
@@ -92,7 +172,7 @@ const addToCart = () => {
                             </div>
                             <span class="text-sm text-gray-500 font-medium">({{ reviewCount }} đánh giá)</span>
                         </div>
-                        
+
                         <div class="flex items-baseline gap-4 mb-6">
                             <span class="text-3xl font-bold text-[#d10000]">{{ formatPrice(product.sale_price || product.price) }}</span>
                             <span v-if="product.sale_price" class="text-xl text-gray-400 line-through">{{ formatPrice(product.price) }}</span>
@@ -111,13 +191,13 @@ const addToCart = () => {
                                 <input v-model="quantity" type="number" class="w-16 text-center border-none focus:ring-0 font-bold" min="1" />
                                 <button @click="quantity++" class="px-4 py-2 hover:bg-gray-100 transition">+</button>
                             </div>
-                            <button 
+                            <button
                                 @click="addToCart"
                                 class="flex-1 bg-[#d10000] hover:bg-black text-white px-8 py-3 uppercase font-bold tracking-[0.2em] transition duration-300"
                             >
                                 Thêm vào giỏ hàng
                             </button>
-                            <button 
+                            <button
                                 @click="toggleWishlist"
                                 class="w-12 h-12 flex items-center justify-center border transition duration-300"
                                 :class="isWishlisted ? 'bg-black border-black text-white' : 'border-gray-300 text-gray-400 hover:border-black hover:text-black'"
@@ -166,14 +246,14 @@ const addToCart = () => {
             <!-- Tabs Section -->
             <div class="mt-20 border-t">
                 <div class="flex gap-8 border-b">
-                    <button 
+                    <button
                         @click="activeTab = 'description'"
                         class="py-4 border-b-2 font-bold uppercase tracking-widest text-sm transition"
                         :class="activeTab === 'description' ? 'border-[#d10000] text-[#d10000]' : 'border-transparent text-gray-400 hover:text-black'"
                     >
                         Mô tả sản phẩm
                     </button>
-                    <button 
+                    <button
                         @click="activeTab = 'reviews'"
                         class="py-4 border-b-2 font-bold uppercase tracking-widest text-sm transition flex items-center gap-2"
                         :class="activeTab === 'reviews' ? 'border-[#d10000] text-[#d10000]' : 'border-transparent text-gray-400 hover:text-black'"
@@ -181,7 +261,7 @@ const addToCart = () => {
                         Đánh giá <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full">{{ reviewCount }}</span>
                     </button>
                 </div>
-                
+
                 <div v-if="activeTab === 'description'" class="py-12 prose max-w-none">
                     <p v-if="product.description" v-html="product.description"></p>
                     <div v-else class="space-y-6">
@@ -196,10 +276,8 @@ const addToCart = () => {
                 </div>
 
                 <div v-if="activeTab === 'reviews'" class="py-12 grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <!-- List Reviews -->
                     <div>
                         <h3 class="text-xl font-bold uppercase italic tracking-widest mb-8">Đánh giá từ khách hàng</h3>
-                        
                         <div v-if="product.reviews && product.reviews.length > 0" class="space-y-8">
                             <div v-for="review in product.reviews" :key="review.id" class="border-b border-gray-100 pb-8 last:border-0">
                                 <div class="flex items-center gap-4 mb-3">
@@ -221,7 +299,6 @@ const addToCart = () => {
                         <div v-else class="text-gray-500 italic text-sm">Chưa có đánh giá nào cho sản phẩm này.</div>
                     </div>
 
-                    <!-- Review Form -->
                     <div class="bg-gray-50 p-8">
                         <h3 class="text-lg font-bold uppercase tracking-widest mb-6">Viết đánh giá</h3>
                         <form @submit.prevent="submitReview" class="space-y-4">
@@ -229,28 +306,19 @@ const addToCart = () => {
                                 <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Tên của bạn</label>
                                 <input v-model="form.customer_name" type="text" required class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm" />
                             </div>
-                            
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Đánh giá của bạn</label>
                                 <div class="flex gap-2">
-                                    <button 
-                                        v-for="i in 5" :key="i" 
-                                        type="button"
-                                        @click="form.rating = i"
+                                    <button v-for="i in 5" :key="i" type="button" @click="form.rating = i"
                                         class="text-2xl transition hover:scale-110"
-                                        :class="i <= form.rating ? 'text-yellow-400' : 'text-gray-300'"
-                                    >
-                                        ★
-                                    </button>
+                                        :class="i <= form.rating ? 'text-yellow-400' : 'text-gray-300'">★</button>
                                 </div>
                             </div>
-
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Nhận xét</label>
                                 <textarea v-model="form.comment" required rows="4" class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm resize-none"></textarea>
                                 <div v-if="form.errors.comment" class="text-red-500 text-xs mt-1">{{ form.errors.comment }}</div>
                             </div>
-
                             <button type="submit" :disabled="form.processing" class="bg-black text-white px-8 py-3 uppercase font-bold tracking-widest text-sm hover:bg-[#d10000] transition w-full disabled:opacity-50">
                                 {{ form.processing ? 'Đang gửi...' : 'Gửi đánh giá' }}
                             </button>
@@ -265,11 +333,52 @@ const addToCart = () => {
                     <h2 class="text-2xl font-bold uppercase italic tracking-widest">Sản phẩm liên quan</h2>
                     <div class="flex-1 h-px bg-gray-100 mx-8 hidden md:block"></div>
                 </div>
-
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <ProductCard v-for="item in relatedProducts" :key="item.id" :product="item" />
                 </div>
             </div>
         </div>
+
+        <!-- Lightbox -->
+        <Teleport to="body">
+            <div
+                v-if="lightboxOpen"
+                class="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center"
+                @click.self="closeLightbox"
+                @keydown.esc="closeLightbox"
+            >
+                <button @click="closeLightbox" class="absolute top-4 right-4 text-white/70 hover:text-white">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+
+                <template v-if="allImages.length > 1">
+                    <button @click="prevImage" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <button @click="nextImage" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </template>
+
+                <img
+                    :src="activeImage"
+                    class="max-w-[90vw] max-h-[90vh] object-contain"
+                    :alt="product.name"
+                />
+
+                <!-- Thumbnail strip in lightbox -->
+                <div v-if="allImages.length > 1" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
+                    <button
+                        v-for="(img, idx) in allImages"
+                        :key="idx"
+                        @click="setActiveImage(img)"
+                        class="w-12 h-12 border-2 rounded overflow-hidden flex-shrink-0 transition"
+                        :class="activeImage === img ? 'border-white' : 'border-white/30 hover:border-white/70'"
+                    >
+                        <img :src="img" class="w-full h-full object-cover" />
+                    </button>
+                </div>
+            </div>
+        </Teleport>
     </ClientLayout>
 </template>

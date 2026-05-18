@@ -44,4 +44,9 @@ class Product extends Model
         return $this->hasMany(Wishlist::class);
     }
 
+    public function productImages()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
 }

@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     })->name('dashboard');
 
     // Quản lý sản phẩm
+    Route::post('/products/fetch-drive-images', [App\Http\Controllers\Admin\ProductController::class, 'fetchDriveImages'])->name('admin.products.fetch-drive');
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class)->names('admin.products');
 
     // Quản lý danh mục

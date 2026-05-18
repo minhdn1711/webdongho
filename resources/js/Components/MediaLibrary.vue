@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -7,6 +7,10 @@ const props = defineProps({
     title: {
         type: String,
         default: 'Thư viện hình ảnh'
+    },
+    multiSelect: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -17,6 +21,7 @@ const loading = ref(false);
 const uploading = ref(false);
 const searchQuery = ref('');
 const selectedImage = ref(null);
+const selectedImages = ref([]);
 
 const fetchImages = async () => {
     loading.value = true;
@@ -46,7 +51,7 @@ const handleFileUpload = async (e) => {
         await axios.post(route('admin.images.store'), formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
-        await fetchImages(); // Tải lại danh sách sau khi upload
+        await fetchImages();
     } catch (error) {
         alert('Lỗi khi tải ảnh lên. Vui lòng thử lại.');
     } finally {
@@ -55,13 +60,38 @@ const handleFileUpload = async (e) => {
 };
 
 const selectImage = (image) => {
-    selectedImage.value = image;
+    if (props.multiSelect) {
+        const idx = selectedImages.value.findIndex(i => i.path === image.path);
+        if (idx >= 0) {
+            selectedImages.value.splice(idx, 1);
+        } else {
+            selectedImages.value.push(image);
+        }
+    } else {
+        selectedImage.value = image;
+    }
+};
+
+const isSelected = (image) => {
+    if (props.multiSelect) {
+        return selectedImages.value.some(i => i.path === image.path);
+    }
+    return selectedImage.value?.path === image.path;
 };
 
 const confirmSelection = () => {
-    if (selectedImage.value) {
-        emit('select', selectedImage.value);
-        emit('close');
+    if (props.multiSelect) {
+        if (selectedImages.value.length > 0) {
+            emit('select', [...selectedImages.value]);
+            selectedImages.value = [];
+            emit('close');
+        }
+    } else {
+        if (selectedImage.value) {
+            emit('select', selectedImage.value);
+            selectedImage.value = null;
+            emit('close');
+        }
     }
 };
 
@@ -69,12 +99,36 @@ onMounted(() => {
     fetchImages();
 });
 
-const filteredImages = () => {
+const filteredImages = computed(() => {
     if (!searchQuery.value) return images.value;
-    return images.value.filter(img => 
+    return images.value.filter(img =>
         img.name.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
-};
+});
+
+const selectionLabel = computed(() => {
+    if (props.multiSelect) {
+        return selectedImages.value.length > 0
+            ? `Đã chọn ${selectedImages.value.length} ảnh`
+            : 'Vui lòng chọn ít nhất một hình ảnh';
+    }
+    return selectedImage.value
+        ? `Đã chọn: ${selectedImage.value.name}`
+        : 'Vui lòng chọn một hình ảnh';
+});
+
+const confirmBtnLabel = computed(() => {
+    if (props.multiSelect) {
+        return selectedImages.value.length > 0
+            ? `Thêm ${selectedImages.value.length} ảnh`
+            : 'Thêm ảnh';
+    }
+    return 'Sử dụng ảnh này';
+});
+
+const hasSelection = computed(() => {
+    return props.multiSelect ? selectedImages.value.length > 0 : !!selectedImage.value;
+});
 </script>
 
 <template>
@@ -91,24 +145,24 @@ const filteredImages = () => {
             <!-- Toolbar -->
             <div class="px-6 py-3 border-b border-gray-200 flex flex-wrap gap-4 items-center bg-white">
                 <div class="flex-1 min-w-[200px]">
-                    <input 
-                        v-model="searchQuery" 
-                        type="text" 
-                        placeholder="Tìm kiếm ảnh theo tên..." 
+                    <input
+                        v-model="searchQuery"
+                        type="text"
+                        placeholder="Tìm kiếm ảnh theo tên..."
                         class="w-full border-gray-300 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500"
                     />
                 </div>
                 <div class="flex items-center gap-2">
-                    <input 
-                        type="file" 
-                        id="media-upload" 
-                        multiple 
-                        class="hidden" 
-                        @change="handleFileUpload" 
+                    <input
+                        type="file"
+                        id="media-upload"
+                        multiple
+                        class="hidden"
+                        @change="handleFileUpload"
                         accept="image/*"
                     />
-                    <label 
-                        for="media-upload" 
+                    <label
+                        for="media-upload"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium cursor-pointer transition flex items-center gap-2"
                         :class="{'opacity-50 pointer-events-none': uploading}"
                     >
@@ -130,26 +184,25 @@ const filteredImages = () => {
                     </div>
                 </div>
 
-                <div v-else-if="filteredImages().length === 0" class="flex flex-col items-center justify-center h-full text-gray-400">
+                <div v-else-if="filteredImages.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400">
                     <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     <p>Không tìm thấy hình ảnh nào.</p>
                 </div>
 
                 <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    <div 
-                        v-for="img in filteredImages()" 
-                        :key="img.path" 
+                    <div
+                        v-for="img in filteredImages"
+                        :key="img.path"
                         @click="selectImage(img)"
                         class="relative aspect-square bg-white border-2 rounded-lg overflow-hidden cursor-pointer transition group"
-                        :class="selectedImage?.path === img.path ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent hover:border-gray-300 shadow-sm'"
+                        :class="isSelected(img) ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent hover:border-gray-300 shadow-sm'"
                     >
                         <img :src="img.url" class="w-full h-full object-cover" />
                         <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition"></div>
                         <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-1 py-0.5 truncate opacity-0 group-hover:opacity-100 transition">
                             {{ img.name }}
                         </div>
-                        <!-- Checkmark for selected -->
-                        <div v-if="selectedImage?.path === img.path" class="absolute top-1 right-1 bg-blue-500 text-white rounded-full p-0.5 shadow-md">
+                        <div v-if="isSelected(img)" class="absolute top-1 right-1 bg-blue-500 text-white rounded-full p-0.5 shadow-md">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
                         </div>
                     </div>
@@ -158,18 +211,15 @@ const filteredImages = () => {
 
             <!-- Footer -->
             <div class="px-6 py-4 border-t border-gray-200 bg-white flex justify-between items-center">
-                <div class="text-xs text-gray-500">
-                    <span v-if="selectedImage">Đã chọn: <strong class="text-gray-700">{{ selectedImage.name }}</strong></span>
-                    <span v-else>Vui lòng chọn một hình ảnh</span>
-                </div>
+                <div class="text-xs text-gray-500">{{ selectionLabel }}</div>
                 <div class="flex gap-3">
                     <button @click="$emit('close')" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-300 rounded transition">Hủy</button>
-                    <button 
-                        @click="confirmSelection" 
-                        :disabled="!selectedImage"
+                    <button
+                        @click="confirmSelection"
+                        :disabled="!hasSelection"
                         class="px-6 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                     >
-                        Sử dụng ảnh này
+                        {{ confirmBtnLabel }}
                     </button>
                 </div>
             </div>
