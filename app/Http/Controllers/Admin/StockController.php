@@ -15,7 +15,7 @@ class StockController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Stock/Index', [
-            'products' => Product::with(['category'])->latest()->get(),
+            'products' => Product::with(['categories'])->latest()->get(),
             'histories' => StockHistory::with(['product', 'user'])->latest()->take(50)->get()
         ]);
     }

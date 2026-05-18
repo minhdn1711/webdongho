@@ -43,7 +43,17 @@ Route::redirect('/admin', '/admin/dashboard');
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        $totalOrders = \App\Models\Order::count();
+        $totalProducts = \App\Models\Product::count();
+        $totalRevenue = \App\Models\Order::where('status', 'completed')->sum('total_amount');
+        
+        return Inertia::render('Dashboard', [
+            'stats' => [
+                'total_orders' => $totalOrders,
+                'total_products' => $totalProducts,
+                'total_revenue' => $totalRevenue,
+            ]
+        ]);
     })->name('dashboard');
 
     // Quản lý sản phẩm

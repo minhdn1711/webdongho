@@ -1,6 +1,10 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
+
+const props = defineProps({
+    stats: Object
+});
 </script>
 
 <template>
@@ -13,16 +17,16 @@ import { Head } from '@inertiajs/vue3';
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded shadow-sm border-t-4 border-blue-500">
-                <h3 class="text-gray-500 text-sm font-bold uppercase">Đơn hàng mới</h3>
-                <p class="text-3xl font-bold mt-2">12</p>
+                <h3 class="text-gray-500 text-sm font-bold uppercase">Tổng đơn hàng</h3>
+                <p class="text-3xl font-bold mt-2">{{ stats?.total_orders ?? 0 }}</p>
             </div>
             <div class="bg-white p-6 rounded shadow-sm border-t-4 border-green-500">
-                <h3 class="text-gray-500 text-sm font-bold uppercase">Sản phẩm</h3>
-                <p class="text-3xl font-bold mt-2">156</p>
+                <h3 class="text-gray-500 text-sm font-bold uppercase">Tổng sản phẩm</h3>
+                <p class="text-3xl font-bold mt-2">{{ stats?.total_products ?? 0 }}</p>
             </div>
             <div class="bg-white p-6 rounded shadow-sm border-t-4 border-purple-500">
-                <h3 class="text-gray-500 text-sm font-bold uppercase">Doanh thu</h3>
-                <p class="text-3xl font-bold mt-2">45.000.000đ</p>
+                <h3 class="text-gray-500 text-sm font-bold uppercase">Tổng doanh thu</h3>
+                <p class="text-3xl font-bold mt-2">{{ (stats?.total_revenue ?? 0).toLocaleString('vi-VN') }}đ</p>
             </div>
         </div>
 
