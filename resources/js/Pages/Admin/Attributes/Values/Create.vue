@@ -1,80 +1,68 @@
-<template>
-  <div class="space-y-6">
-    <h1 class="text-3xl font-bold text-gray-900">Thêm Giá trị - {{ props.attribute.name }}</h1>
-
-    <form @submit.prevent="submit" class="bg-white rounded-lg shadow p-6">
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Giá trị</label>
-          <input
-            v-model="form.value"
-            type="text"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            placeholder="e.g., Đỏ"
-          />
-          <span v-if="form.errors.value" class="text-red-600 text-sm">{{ form.errors.value }}</span>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Slug</label>
-          <input
-            v-model="form.slug"
-            type="text"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            placeholder="e.g., red"
-          />
-          <span v-if="form.errors.slug" class="text-red-600 text-sm">{{ form.errors.slug }}</span>
-        </div>
-
-        <div v-if="props.attribute.type === 'color'">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Mã Màu (Hex)</label>
-          <div class="flex space-x-2">
-            <input
-              v-model="form.meta_value"
-              type="color"
-              class="w-20 h-10 border border-gray-300 rounded-lg cursor-pointer"
-            />
-            <input
-              v-model="form.meta_value"
-              type="text"
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="e.g., #FF0000"
-            />
-          </div>
-          <span v-if="form.errors.meta_value" class="text-red-600 text-sm">{{ form.errors.meta_value }}</span>
-        </div>
-
-        <div class="flex space-x-3">
-          <button
-            type="submit"
-            :disabled="form.processing"
-            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {{ form.processing ? 'Đang xử lý...' : 'Tạo' }}
-          </button>
-          <Link :href="`/admin/attributes/${props.attribute.id}/values`" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-            Hủy
-          </Link>
-        </div>
-      </div>
-    </form>
-  </div>
-</template>
-
 <script setup>
-import { Link, useForm } from '@inertiajs/vue3';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
-  attribute: Object,
+    attribute: Object,
 });
 
 const form = useForm({
-  value: '',
-  slug: '',
-  meta_value: '#000000',
+    value: '',
+    slug: '',
+    meta_value: '#000000',
 });
 
 const submit = () => {
-  form.post(`/admin/attributes/${props.attribute.id}/values`);
+    form.post(`/admin/attributes/${props.attribute.id}/values`);
 };
 </script>
+
+<template>
+    <AdminLayout>
+        <Head title="Thêm Giá trị" />
+
+        <div class="max-w-xl space-y-4">
+            <div class="flex items-center gap-2 text-sm text-[#50575e]">
+                <Link href="/admin/attributes" class="text-[#2271b1] hover:underline">Thuộc tính</Link>
+                <span>›</span>
+                <Link :href="`/admin/attributes/${props.attribute.id}/values`" class="text-[#2271b1] hover:underline">{{ props.attribute.name }}</Link>
+                <span>›</span>
+                <span>Thêm giá trị</span>
+            </div>
+
+            <div class="bg-white border border-[#c3c4c7] shadow-sm p-6 space-y-4">
+                <h1 class="text-lg font-semibold text-[#1d2327]">Thêm Giá trị cho "{{ props.attribute.name }}"</h1>
+
+                <form @submit.prevent="submit" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#1d2327] mb-1">Giá trị</label>
+                        <input v-model="form.value" type="text" class="w-full border-[#8c8f94] rounded text-sm py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Ví dụ: Đỏ" />
+                        <p v-if="form.errors.value" class="mt-1 text-red-600 text-xs">{{ form.errors.value }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-[#1d2327] mb-1">Slug</label>
+                        <input v-model="form.slug" type="text" class="w-full border-[#8c8f94] rounded text-sm py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Ví dụ: do" />
+                        <p v-if="form.errors.slug" class="mt-1 text-red-600 text-xs">{{ form.errors.slug }}</p>
+                    </div>
+
+                    <div v-if="props.attribute.type === 'color'">
+                        <label class="block text-sm font-medium text-[#1d2327] mb-1">Mã màu (Hex)</label>
+                        <div class="flex gap-2">
+                            <input v-model="form.meta_value" type="color" class="w-12 h-9 border border-[#8c8f94] rounded cursor-pointer p-0.5" />
+                            <input v-model="form.meta_value" type="text" class="flex-1 border-[#8c8f94] rounded text-sm py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="#FF0000" />
+                        </div>
+                        <p v-if="form.errors.meta_value" class="mt-1 text-red-600 text-xs">{{ form.errors.meta_value }}</p>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button type="submit" :disabled="form.processing" class="bg-[#2271b1] text-white px-4 py-1.5 text-sm rounded hover:bg-[#135e96] disabled:opacity-50">
+                            {{ form.processing ? 'Đang lưu...' : 'Thêm Giá trị' }}
+                        </button>
+                        <Link :href="`/admin/attributes/${props.attribute.id}/values`" class="px-4 py-1.5 text-sm border border-[#c3c4c7] rounded hover:bg-[#f6f7f7]">Hủy</Link>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </AdminLayout>
+</template>

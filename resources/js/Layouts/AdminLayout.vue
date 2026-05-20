@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
@@ -47,7 +47,13 @@ const toggleSidebar = () => {
 
 const menuItems = [
     { name: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', url: '/admin/dashboard' },
-    { name: 'Sản phẩm', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', url: '/admin/products' },
+    {
+        name: 'Sản phẩm', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', url: '/admin/products',
+        children: [
+            { name: 'Danh sách', url: '/admin/products' },
+            { name: 'Thuộc tính', url: '/admin/attributes' },
+        ],
+    },
     { name: 'Danh mục', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10', url: '/admin/categories' },
     { name: 'Kho hàng', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', url: '/admin/stock' },
     { name: 'Đơn hàng', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', url: '/admin/orders' },
@@ -59,6 +65,10 @@ const menuItems = [
     { name: 'Sync Logs', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', url: '/admin/pancake/sync-logs' },
     { name: 'Webhook Logs', icon: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', url: '/admin/pancake/webhook-logs' },
 ];
+
+const openMenus = ref({ 'Sản phẩm': true });
+const toggleMenu = (name) => { openMenus.value[name] = !openMenus.value[name]; };
+const isChildActive = (item) => item.children?.some(c => page.url.startsWith(c.url));
 </script>
 
 <template>
@@ -79,8 +89,38 @@ const menuItems = [
             <!-- Navigation Menu -->
             <nav class="flex-1 mt-4 overflow-y-auto no-scrollbar">
                 <template v-for="item in menuItems" :key="item.name">
-                    <Link 
-                        :href="item.url" 
+                    <!-- Item có submenu -->
+                    <template v-if="item.children">
+                        <button
+                            @click="toggleMenu(item.name)"
+                            class="w-full flex items-center px-4 py-2 hover:bg-[#2c3338] hover:text-blue-400 transition-colors"
+                            :class="{ 'text-blue-400': isChildActive(item) }"
+                        >
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
+                            </svg>
+                            <span v-show="isSidebarOpen" class="ml-3 text-sm font-medium flex-1 text-left">{{ item.name }}</span>
+                            <svg v-show="isSidebarOpen" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': openMenus[item.name] }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div v-show="openMenus[item.name] && isSidebarOpen" class="bg-[#1a1f24]">
+                            <Link
+                                v-for="child in item.children"
+                                :key="child.url"
+                                :href="child.url"
+                                class="flex items-center pl-12 pr-4 py-1.5 text-sm text-gray-400 hover:text-blue-400 hover:bg-[#2c3338] transition-colors"
+                                :class="{ 'text-blue-400 font-medium': $page.url.startsWith(child.url) }"
+                            >
+                                {{ child.name }}
+                            </Link>
+                        </div>
+                    </template>
+
+                    <!-- Item thường -->
+                    <Link
+                        v-else
+                        :href="item.url"
                         class="flex items-center px-4 py-2 hover:bg-[#2c3338] hover:text-blue-400 transition-colors group"
                         :class="{ 'bg-blue-600 text-white': $page.url === item.url }"
                     >
