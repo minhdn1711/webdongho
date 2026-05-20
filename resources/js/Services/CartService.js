@@ -2,10 +2,15 @@ import { reactive } from 'vue';
 
 const CART_KEY = 'webdongho_cart';
 
+function makeCartKey(productId, attributes) {
+    if (!attributes || Object.keys(attributes).length === 0) return String(productId);
+    const sorted = Object.entries(attributes).sort(([a], [b]) => a.localeCompare(b));
+    return `${productId}_${sorted.map(([k, v]) => `${k}:${v}`).join('|')}`;
+}
+
 export const cart = reactive({
     items: JSON.parse(localStorage.getItem(CART_KEY) || '[]'),
-    
-    // Notification state
+
     notification: {
         show: false,
         message: '',
@@ -16,37 +21,37 @@ export const cart = reactive({
         this.notification.message = message;
         this.notification.product = product;
         this.notification.show = true;
-        
-        // Auto hide after 4 seconds
-        setTimeout(() => {
-            this.notification.show = false;
-        }, 4000);
+        setTimeout(() => { this.notification.show = false; }, 4000);
     },
-    
-    add(product, quantity = 1) {
-        const index = this.items.findIndex(item => item.id === product.id);
+
+    add(product, quantity = 1, attributes = null) {
+        const cartKey = makeCartKey(product.id, attributes);
+        const index = this.items.findIndex(item => item.cartKey === cartKey);
+
         if (index > -1) {
             this.items[index].quantity += quantity;
         } else {
             this.items.push({
+                cartKey,
                 id: product.id,
                 name: product.name,
                 price: product.sale_price || product.price,
                 image: product.image,
-                quantity: quantity
+                quantity,
+                attributes: attributes || null,
             });
         }
         this.save();
         this.notify(`Đã thêm "${product.name}" vào giỏ hàng`, product);
     },
 
-    remove(productId) {
-        this.items = this.items.filter(item => item.id !== productId);
+    remove(cartKey) {
+        this.items = this.items.filter(item => (item.cartKey ?? String(item.id)) !== String(cartKey));
         this.save();
     },
 
-    updateQuantity(productId, quantity) {
-        const index = this.items.findIndex(item => item.id === productId);
+    updateQuantity(cartKey, quantity) {
+        const index = this.items.findIndex(item => (item.cartKey ?? String(item.id)) === String(cartKey));
         if (index > -1) {
             this.items[index].quantity = Math.max(1, quantity);
             this.save();

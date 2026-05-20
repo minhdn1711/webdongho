@@ -17,6 +17,8 @@ class ProductController extends Controller
             'categories',
             'productImages',
             'reviews' => fn($q) => $q->where('is_approved', true)->latest(),
+            'productAttributeValues.attribute',
+            'productAttributeValues.attributeValue',
         ])->where('slug', $slug)->firstOrFail();
         
         $categoryIds = $product->categories->pluck('id')->toArray();

@@ -3,7 +3,7 @@ import ClientLayout from '@/Layouts/ClientLayout.vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { cart } from '@/Services/CartService';
 import ProductCard from '@/Components/ProductCard.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, reactive } from 'vue';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -56,6 +56,27 @@ const nextImage = () => {
 const quantity = ref(1);
 const activeTab = ref('description');
 
+// Group product_attribute_values by attribute
+const groupedAttributes = computed(() => {
+    const groups = {};
+    for (const pav of props.product.product_attribute_values || []) {
+        const id = pav.attribute_id;
+        if (!groups[id]) groups[id] = { attribute: pav.attribute, values: [] };
+        groups[id].values.push(pav.attribute_value);
+    }
+    return Object.values(groups);
+});
+
+const selectedAttributes = reactive({}); // { "Màu sắc": "Đỏ", ... }
+
+const selectAttribute = (attrName, valueName) => {
+    selectedAttributes[attrName] = valueName;
+};
+
+const allSelected = computed(() =>
+    groupedAttributes.value.every(g => selectedAttributes[g.attribute.name])
+);
+
 const form = useForm({
     product_id: props.product.id,
     rating: 5,
@@ -88,9 +109,8 @@ const formatPrice = (price) => {
 };
 
 const addToCart = () => {
-    for (let i = 0; i < quantity.value; i++) {
-        cart.add(props.product);
-    }
+    const attrs = Object.keys(selectedAttributes).length > 0 ? { ...selectedAttributes } : null;
+    cart.add(props.product, quantity.value, attrs);
 };
 </script>
 
@@ -183,6 +203,51 @@ const addToCart = () => {
                         </div>
                     </div>
 
+                    <!-- Attributes Selector -->
+                    <div v-if="groupedAttributes.length > 0" class="space-y-4 mb-6">
+                        <div v-for="group in groupedAttributes" :key="group.attribute.id">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs font-bold uppercase tracking-widest text-gray-500">{{ group.attribute.name }}:</span>
+                                <span v-if="selectedAttributes[group.attribute.name]" class="text-xs font-semibold text-gray-800">{{ selectedAttributes[group.attribute.name] }}</span>
+                            </div>
+
+                            <!-- Color type -->
+                            <div v-if="group.attribute.type === 'color'" class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="val in group.values"
+                                    :key="val.id"
+                                    @click="selectAttribute(group.attribute.name, val.value)"
+                                    :title="val.value"
+                                    class="w-8 h-8 rounded-full border-2 transition-all"
+                                    :style="{ backgroundColor: val.meta_value }"
+                                    :class="selectedAttributes[group.attribute.name] === val.value
+                                        ? 'border-black scale-110 ring-2 ring-black ring-offset-1'
+                                        : 'border-gray-300 hover:border-gray-500'"
+                                />
+                            </div>
+
+                            <!-- Button / Text type -->
+                            <div v-else class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="val in group.values"
+                                    :key="val.id"
+                                    @click="selectAttribute(group.attribute.name, val.value)"
+                                    class="px-4 py-1.5 border text-sm font-medium transition-all"
+                                    :class="selectedAttributes[group.attribute.name] === val.value
+                                        ? 'border-black bg-black text-white'
+                                        : 'border-gray-300 text-gray-700 hover:border-black'"
+                                >
+                                    {{ val.value }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Warning nếu chưa chọn đủ -->
+                        <p v-if="!allSelected" class="text-xs text-amber-600 font-medium">
+                            Vui lòng chọn đầy đủ các thuộc tính trước khi thêm vào giỏ.
+                        </p>
+                    </div>
+
                     <!-- Add to Cart -->
                     <div class="flex flex-col gap-6 pt-6 border-t border-gray-100">
                         <div v-if="product.stock > 0" class="flex flex-wrap gap-4 items-center">
@@ -193,7 +258,8 @@ const addToCart = () => {
                             </div>
                             <button
                                 @click="addToCart"
-                                class="flex-1 bg-[#d10000] hover:bg-black text-white px-8 py-3 uppercase font-bold tracking-[0.2em] transition duration-300"
+                                :disabled="groupedAttributes.length > 0 && !allSelected"
+                                class="flex-1 bg-[#d10000] hover:bg-black text-white px-8 py-3 uppercase font-bold tracking-[0.2em] transition duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                                 Thêm vào giỏ hàng
                             </button>

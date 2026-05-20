@@ -38,7 +38,7 @@ const formatPrice = (price) => {
                         <div class="text-right">Tổng</div>
                     </div>
 
-                    <div v-for="item in cart.items" :key="item.id" class="grid grid-cols-1 md:grid-cols-6 gap-4 py-8 border-b items-center">
+                    <div v-for="item in cart.items" :key="item.cartKey ?? item.id" class="grid grid-cols-1 md:grid-cols-6 gap-4 py-8 border-b items-center">
                         <!-- Product Info -->
                         <div class="col-span-3 flex gap-6 items-center">
                             <div class="w-24 h-24 bg-gray-100 shrink-0 border">
@@ -46,7 +46,12 @@ const formatPrice = (price) => {
                             </div>
                             <div>
                                 <h3 class="font-bold text-lg mb-1">{{ item.name }}</h3>
-                                <button @click="cart.remove(item.id)" class="text-xs text-red-500 hover:underline uppercase tracking-tighter font-bold">Xóa sản phẩm</button>
+                                <div v-if="item.attributes" class="flex flex-wrap gap-1 mb-1">
+                                    <span v-for="(val, key) in item.attributes" :key="key" class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                                        {{ key }}: {{ val }}
+                                    </span>
+                                </div>
+                                <button @click="cart.remove(item.cartKey ?? item.id)" class="text-xs text-red-500 hover:underline uppercase tracking-tighter font-bold">Xóa sản phẩm</button>
                             </div>
                         </div>
 
@@ -59,18 +64,18 @@ const formatPrice = (price) => {
                         <!-- Quantity -->
                         <div class="flex justify-center">
                             <div class="flex items-center border">
-                                <button 
-                                    @click="cart.updateQuantity(item.id, item.quantity - 1)"
+                                <button
+                                    @click="cart.updateQuantity(item.cartKey ?? item.id, item.quantity - 1)"
                                     class="px-3 py-1 hover:bg-gray-100"
                                 >-</button>
-                                <input 
-                                    type="number" 
-                                    v-model.number="item.quantity" 
-                                    @change="cart.updateQuantity(item.id, item.quantity)"
+                                <input
+                                    type="number"
+                                    v-model.number="item.quantity"
+                                    @change="cart.updateQuantity(item.cartKey ?? item.id, item.quantity)"
                                     class="w-12 text-center border-none focus:ring-0 text-sm"
                                 />
-                                <button 
-                                    @click="cart.updateQuantity(item.id, item.quantity + 1)"
+                                <button
+                                    @click="cart.updateQuantity(item.cartKey ?? item.id, item.quantity + 1)"
                                     class="px-3 py-1 hover:bg-gray-100"
                                 >+</button>
                             </div>
