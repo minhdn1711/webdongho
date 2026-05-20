@@ -12,7 +12,7 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
             placeholder="e.g., Màu sắc"
           />
-          <span v-if="errors.name" class="text-red-600 text-sm">{{ errors.name }}</span>
+          <span v-if="form.errors.name" class="text-red-600 text-sm">{{ form.errors.name }}</span>
         </div>
 
         <div>
@@ -23,7 +23,7 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
             placeholder="e.g., color"
           />
-          <span v-if="errors.slug" class="text-red-600 text-sm">{{ errors.slug }}</span>
+          <span v-if="form.errors.slug" class="text-red-600 text-sm">{{ form.errors.slug }}</span>
         </div>
 
         <div>
@@ -37,16 +37,16 @@
             <option value="color">Color</option>
             <option value="button">Button</option>
           </select>
-          <span v-if="errors.type" class="text-red-600 text-sm">{{ errors.type }}</span>
+          <span v-if="form.errors.type" class="text-red-600 text-sm">{{ form.errors.type }}</span>
         </div>
 
         <div class="flex space-x-3">
           <button
             type="submit"
-            :disabled="processing"
+            :disabled="form.processing"
             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
-            {{ processing ? 'Đang xử lý...' : 'Cập nhật' }}
+            {{ form.processing ? 'Đang xử lý...' : 'Cập nhật' }}
           </button>
           <Link href="/admin/attributes" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
             Hủy
@@ -59,27 +59,18 @@
 
 <script setup>
 import { Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
 
-defineProps({
+const props = defineProps({
   attribute: Object,
 });
 
 const form = useForm({
-  name: '',
-  slug: '',
-  type: '',
+  name: props.attribute.name,
+  slug: props.attribute.slug,
+  type: props.attribute.type,
 });
 
-form.name = attribute.name;
-form.slug = attribute.slug;
-form.type = attribute.type;
-
-const errors = ref({});
-const processing = ref(false);
-
-const submit = async () => {
-  processing.value = true;
-  form.patch(`/admin/attributes/${attribute.id}`);
+const submit = () => {
+  form.patch(`/admin/attributes/${props.attribute.id}`);
 };
 </script>

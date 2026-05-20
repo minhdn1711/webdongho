@@ -51,14 +51,14 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
   attribute: Object,
   values: Object,
 });
 
 const deleteValue = (id) => {
   if (confirm('Bạn có chắc chắn muốn xóa giá trị này?')) {
-    router.delete(`/admin/attributes/${attribute.id}/values/${id}`);
+    router.delete(`/admin/attributes/${props.attribute.id}/values/${id}`);
   }
 };
 </script>

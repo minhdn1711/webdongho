@@ -274,7 +274,7 @@ const submit = () => {
                                             type="checkbox"
                                             :id="'attr-' + value.id"
                                             :value="value.id"
-                                            v-model="form.product_attributes[attribute.id] = form.product_attributes[attribute.id] || []"
+                                            v-model="form.product_attributes[attribute.id]"
                                             class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
                                         />
                                         <label :for="'attr-' + value.id" class="ml-2 text-[13px] text-[#50575e] cursor-pointer hover:text-[#2271b1]">{{ value.value }}</label>
@@ -286,7 +286,7 @@ const submit = () => {
                                             type="checkbox"
                                             :id="'attr-' + value.id"
                                             :value="value.id"
-                                            v-model="form.product_attributes[attribute.id] = form.product_attributes[attribute.id] || []"
+                                            v-model="form.product_attributes[attribute.id]"
                                             class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
                                         />
                                         <label :for="'attr-' + value.id" class="ml-2 cursor-pointer flex items-center gap-2">
@@ -300,7 +300,7 @@ const submit = () => {
                                         <input
                                             type="checkbox"
                                             :value="value.id"
-                                            v-model="form.product_attributes[attribute.id] = form.product_attributes[attribute.id] || []"
+                                            v-model="form.product_attributes[attribute.id]"
                                             class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
                                         />
                                         <span class="px-3 py-1 border border-[#c3c4c7] rounded text-[13px] text-[#50575e] hover:border-[#2271b1] cursor-pointer">{{ value.value }}</span>
