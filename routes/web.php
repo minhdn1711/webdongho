@@ -100,6 +100,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('attributes', App\Http\Controllers\Admin\AttributeController::class)->names('admin.attributes');
     Route::resource('attributes.values', App\Http\Controllers\Admin\AttributeValueController::class)->names('admin.attributes.values');
 
+    // Quản lý Đánh giá
+    Route::get('/reviews', [App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('admin.reviews.index');
+    Route::post('/reviews/{review}/approve', [App\Http\Controllers\Admin\ReviewController::class, 'approve'])->name('admin.reviews.approve');
+    Route::post('/reviews/{review}/reject', [App\Http\Controllers\Admin\ReviewController::class, 'reject'])->name('admin.reviews.reject');
+    Route::delete('/reviews/{review}', [App\Http\Controllers\Admin\ReviewController::class, 'destroy'])->name('admin.reviews.destroy');
+
     // Pancake POS Integration
     Route::prefix('pancake')->group(function () {
         Route::get('/settings', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'settings'])->name('admin.pancake.settings');
