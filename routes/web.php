@@ -39,9 +39,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/wishlist/toggle', [App\Http\Controllers\Client\WishlistController::class, 'toggle'])->name('wishlist.toggle');
 });
 
+// Admin Auth
+Route::middleware('guest')->group(function () {
+    Route::get('/admin/login', [\App\Http\Controllers\Admin\Auth\AdminLoginController::class, 'create'])->name('admin.login');
+    Route::post('/admin/login', [\App\Http\Controllers\Admin\Auth\AdminLoginController::class, 'store'])->name('admin.login.store');
+});
+Route::post('/admin/logout', [\App\Http\Controllers\Admin\Auth\AdminLoginController::class, 'destroy'])->name('admin.logout');
+
 Route::redirect('/admin', '/admin/dashboard');
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         $totalOrders = \App\Models\Order::count();
         $totalProducts = \App\Models\Product::count();
