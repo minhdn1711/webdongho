@@ -6,10 +6,26 @@ const props = defineProps({
     attribute: Object,
 });
 
+import { ref, watch } from 'vue';
+
 const form = useForm({
     value: '',
     slug: '',
     meta_value: '#000000',
+});
+
+const slugManuallyEdited = ref(false);
+
+function toSlug(str) {
+    return str
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+}
+
+watch(() => form.value, (val) => {
+    if (!slugManuallyEdited.value) form.slug = toSlug(val);
 });
 
 const submit = () => {
@@ -42,7 +58,7 @@ const submit = () => {
 
                     <div>
                         <label class="block text-sm font-medium text-[#1d2327] mb-1">Slug</label>
-                        <input v-model="form.slug" type="text" class="w-full border-[#8c8f94] rounded text-sm py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Ví dụ: do" />
+                        <input v-model="form.slug" type="text" @input="slugManuallyEdited = true" class="w-full border-[#8c8f94] rounded text-sm py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Tự động sinh từ giá trị" />
                         <p v-if="form.errors.slug" class="mt-1 text-red-600 text-xs">{{ form.errors.slug }}</p>
                     </div>
 

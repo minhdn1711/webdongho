@@ -1,16 +1,25 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { watch, ref } from 'vue';
 
-const form = useForm({
-    name: '',
-    slug: '',
-    type: '',
+const form = useForm({ name: '', slug: '', type: '' });
+
+const slugManuallyEdited = ref(false);
+
+function toSlug(str) {
+    return str.toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/đ/g, 'd').replace(/Đ/g, 'd')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+}
+
+watch(() => form.name, (val) => {
+    if (!slugManuallyEdited.value) form.slug = toSlug(val);
 });
 
-const submit = () => {
-    form.post('/admin/attributes');
-};
+const submit = () => { form.post('/admin/attributes'); };
 </script>
 
 <template>
@@ -36,7 +45,7 @@ const submit = () => {
 
                     <div>
                         <label class="block text-sm font-medium text-[#1d2327] mb-1">Slug</label>
-                        <input v-model="form.slug" type="text" class="w-full border-[#8c8f94] rounded text-sm py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Ví dụ: mau-sac" />
+                        <input v-model="form.slug" type="text" @input="slugManuallyEdited = true" class="w-full border-[#8c8f94] rounded text-sm py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Tự động sinh từ tên" />
                         <p v-if="form.errors.slug" class="mt-1 text-red-600 text-xs">{{ form.errors.slug }}</p>
                     </div>
 
