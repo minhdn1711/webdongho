@@ -11,6 +11,7 @@ import axios from 'axios';
 
 defineProps({
     categories: Array,
+    attributes: Array,
 });
 
 const imagePreview = ref(null);
@@ -37,6 +38,7 @@ const form = useForm({
     is_featured: false,
     sku: '',
     barcode: '',
+    product_attributes: {},
 });
 
 const pancakeConfigured = usePage().props.pancake_configured;
@@ -226,6 +228,56 @@ const submit = () => {
                             <div>
                                 <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Barcode (Mã vạch)</label>
                                 <input v-model="form.barcode" type="text" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="Ví dụ: 893..." />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Attributes -->
+                    <div class="bg-white border border-[#c3c4c7] shadow-sm" v-if="attributes && attributes.length > 0">
+                        <div class="bg-[#f0f0f1] border-b border-[#c3c4c7] px-3 py-2">
+                            <span class="text-[13px] font-semibold text-[#1d2327]">Thuộc tính sản phẩm</span>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div v-for="attribute in attributes" :key="attribute.id">
+                                <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-2">{{ attribute.name }}</label>
+                                <div v-if="attribute.type === 'text'" class="space-y-2">
+                                    <div v-for="value in attribute.attribute_values" :key="value.id" class="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            :id="'attr-' + value.id"
+                                            :value="value.id"
+                                            v-model="form.product_attributes[attribute.id] = form.product_attributes[attribute.id] || []"
+                                            class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
+                                        />
+                                        <label :for="'attr-' + value.id" class="ml-2 text-[13px] text-[#50575e] cursor-pointer hover:text-[#2271b1]">{{ value.value }}</label>
+                                    </div>
+                                </div>
+                                <div v-else-if="attribute.type === 'color'" class="flex flex-wrap gap-2">
+                                    <div v-for="value in attribute.attribute_values" :key="value.id" class="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            :id="'attr-' + value.id"
+                                            :value="value.id"
+                                            v-model="form.product_attributes[attribute.id] = form.product_attributes[attribute.id] || []"
+                                            class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
+                                        />
+                                        <label :for="'attr-' + value.id" class="ml-2 cursor-pointer flex items-center gap-2">
+                                            <div :style="{ backgroundColor: value.meta_value }" class="w-6 h-6 border border-gray-300 rounded"></div>
+                                            <span class="text-[13px] text-[#50575e]">{{ value.value }}</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div v-else-if="attribute.type === 'button'" class="flex flex-wrap gap-2">
+                                    <label v-for="value in attribute.attribute_values" :key="value.id" class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            :value="value.id"
+                                            v-model="form.product_attributes[attribute.id] = form.product_attributes[attribute.id] || []"
+                                            class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
+                                        />
+                                        <span class="px-3 py-1 border border-[#c3c4c7] rounded text-[13px] text-[#50575e] hover:border-[#2271b1] cursor-pointer">{{ value.value }}</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>

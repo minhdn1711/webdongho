@@ -46,7 +46,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
         $totalOrders = \App\Models\Order::count();
         $totalProducts = \App\Models\Product::count();
         $totalRevenue = \App\Models\Order::where('status', 'completed')->sum('total_amount');
-        
+
         return Inertia::render('Dashboard', [
             'stats' => [
                 'total_orders' => $totalOrders,
@@ -88,6 +88,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
 
     // Quản lý Banner
     Route::resource('banners', App\Http\Controllers\Admin\BannerController::class)->names('admin.banners');
+
+    // Quản lý Thuộc tính sản phẩm
+    Route::resource('attributes', App\Http\Controllers\Admin\AttributeController::class)->names('admin.attributes');
+    Route::resource('attributes.values', App\Http\Controllers\Admin\AttributeValueController::class)->names('admin.attributes.values');
 
     // Pancake POS Integration
     Route::prefix('pancake')->group(function () {

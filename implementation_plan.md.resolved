@@ -1,0 +1,76 @@
+# Goal: Thêm chức năng quản lý thuộc tính sản phẩm giống WordPress
+
+Tính năng yêu cầu thêm, sửa, xóa các thuộc tính sản phẩm (Product Attributes) giống như WordPress/WooCommerce. Bao gồm việc quản lý các thuộc tính chung (Global Attributes), gán thuộc tính cho Sản phẩm, và hiển thị trên trang chi tiết Sản phẩm.
+
+## Proposed Changes
+
+---
+
+### Database & Models
+
+#### [NEW] Migration: `create_attributes_table`
+- Bảng `attributes`: `id`, `name`, `slug`, `type` (text, color, button), `created_at`, `updated_at`.
+
+#### [NEW] Migration: `create_attribute_values_table`
+- Bảng `attribute_values`: `id`, `attribute_id` (foreign key), `value` (tên hiển thị), `slug`, `meta_value` (dùng để lưu mã hex màu, hình ảnh hoặc metadata khác tùy thuộc vào type), `created_at`, `updated_at`.
+
+#### [NEW] Migration: `create_product_attribute_values_table`
+- Bảng pivot `product_attribute_values`: `id`, `product_id`, `attribute_id`, `attribute_value_id`, `created_at`, `updated_at`.
+
+#### [NEW] Model: `app/Models/Attribute.php`
+- Định nghĩa model `Attribute` và relationship `hasMany` tới `AttributeValue`.
+
+#### [NEW] Model: `app/Models/AttributeValue.php`
+- Định nghĩa model `AttributeValue` và relationship `belongsTo` tới `Attribute`.
+
+#### [NEW] Model: `app/Models/ProductAttributeValue.php` (hoặc định nghĩa pivot trên Product)
+- Relationship trên `Product` model: `attributeValues()` (belongsToMany) hoặc quan hệ HasMany tới bảng pivot để dễ group.
+
+---
+
+### Controllers & Routes
+
+#### [NEW] Controller: `app/Http/Controllers/Admin/AttributeController.php`
+- Chứa các hàm `index`, `store`, `update`, `destroy` quản lý Thuộc tính.
+
+#### [NEW] Controller: `app/Http/Controllers/Admin/AttributeValueController.php`
+- Chứa các hàm `index`, `store`, `update`, `destroy` quản lý Giá trị.
+
+#### [MODIFY] `app/Http/Controllers/Admin/ProductController.php`
+- Cập nhật hàm `create`, `edit` để truyền danh sách Thuộc tính & Giá trị ra view.
+- Cập nhật hàm `store`, `update` để lưu các thuộc tính được chọn vào bảng `product_attribute_values`.
+
+#### [MODIFY] `app/Http/Controllers/Client/ProductController.php`
+- Load quan hệ thuộc tính khi fetch chi tiết sản phẩm để truyền ra view client.
+
+#### [MODIFY] `routes/web.php`
+- Thêm route admin cho attributes và attribute values.
+
+---
+
+### Views (Vue 3 / Inertia)
+
+#### [NEW] `resources/js/Pages/Admin/Attributes/Index.vue`
+- Giao diện danh sách Thuộc tính. Form thêm/sửa hỗ trợ chọn `type` (Text, Color, Button).
+
+#### [NEW] `resources/js/Pages/Admin/Attributes/Values/Index.vue`
+- Giao diện danh sách Giá trị. Nếu thuộc tính là kiểu Color, hiển thị color picker để nhập `meta_value`.
+
+#### [MODIFY] `resources/js/Pages/Admin/Products/Create.vue` & `Edit.vue`
+- Thêm section "Thuộc tính sản phẩm". Hỗ trợ chọn/thêm các giá trị thuộc tính cho sản phẩm đang tạo.
+
+#### [MODIFY] `resources/js/Layouts/AdminLayout.vue`
+- Thêm menu "Thuộc tính" vào sidebar.
+
+#### [MODIFY] `resources/js/Pages/Client/Product.vue` (hoặc tương đương trang chi tiết)
+- Hiển thị danh sách các thuộc tính và giá trị tương ứng của sản phẩm (nếu kiểu là Color thì hiển thị dạng ô màu, nếu Button thì hiển thị dạng nút chọn).
+
+## Verification Plan
+
+### Automated Tests
+- Chạy lệnh `php artisan migrate` để tạo bảng thành công mà không có lỗi.
+
+### Manual Verification
+- Thêm Thuộc tính kiểu Color (Màu sắc) và gán các màu Đỏ, Xanh kèm mã Hex.
+- Vào trang Thêm Sản Phẩm, chọn các màu này.
+- Ra trang chi tiết sản phẩm kiểm tra UI đã render đúng ô màu hay chưa.

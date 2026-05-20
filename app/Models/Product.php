@@ -10,15 +10,15 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id', 
-        'name', 
+        'category_id',
+        'name',
         'short_description',
-        'slug', 
-        'description', 
-        'price', 
-        'sale_price', 
-        'image', 
-        'is_featured', 
+        'slug',
+        'description',
+        'price',
+        'sale_price',
+        'image',
+        'is_featured',
         'stock',
         'sku',
         'barcode'
@@ -47,6 +47,17 @@ class Product extends Model
     public function productImages()
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function productAttributeValues()
+    {
+        return $this->hasMany(ProductAttributeValue::class);
+    }
+
+    public function attributeValues()
+    {
+        return $this->belongsToMany(AttributeValue::class, 'product_attribute_values')
+                    ->withPivot('attribute_id');
     }
 
 }

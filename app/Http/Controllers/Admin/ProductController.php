@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductImage;
+use App\Models\Attribute;
+use App\Models\ProductAttributeValue;
 use App\Events\ProductSaved;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -25,7 +27,8 @@ class ProductController extends Controller
     public function create()
     {
         return Inertia::render('Admin/Products/Create', [
-            'categories' => Category::all()
+            'categories' => Category::all(),
+            'attributes' => Attribute::with('attributeValues')->get(),
         ]);
     }
 
@@ -62,6 +65,11 @@ class ProductController extends Controller
         $product = Product::create($data);
         $product->categories()->sync($request->category_ids);
 
+        // Save product attributes
+        if ($request->has('product_attributes')) {
+            $this->saveProductAttributes($product, $request->product_attributes);
+        }
+
         $this->saveGalleryImages($product, $request);
 
         event(new ProductSaved($product));
@@ -72,8 +80,9 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         return Inertia::render('Admin/Products/Edit', [
-            'product'    => $product->load(['categories', 'productImages']),
-            'categories' => Category::all()
+            'product'    => $product->load(['categories', 'productImages', 'productAttributeValues']),
+            'categories' => Category::all(),
+            'attributes' => Attribute::with('attributeValues')->get(),
         ]);
     }
 
@@ -115,6 +124,12 @@ class ProductController extends Controller
 
         $product->update($data);
         $product->categories()->sync($request->category_ids);
+
+        // Save product attributes
+        if ($request->has('product_attributes')) {
+            $product->productAttributeValues()->delete();
+            $this->saveProductAttributes($product, $request->product_attributes);
+        }
 
         // Delete removed gallery images
         if ($request->has('delete_image_ids') && is_array($request->delete_image_ids)) {
@@ -174,6 +189,21 @@ class ProductController extends Controller
         }, $response->json('files', []));
 
         return response()->json(['images' => $images]);
+    }
+
+    private function saveProductAttributes(Product $product, array $attributes): void
+    {
+        foreach ($attributes as $attributeId => $attributeValueIds) {
+            if (is_array($attributeValueIds)) {
+                foreach ($attributeValueIds as $valueId) {
+                    ProductAttributeValue::create([
+                        'product_id' => $product->id,
+                        'attribute_id' => $attributeId,
+                        'attribute_value_id' => $valueId,
+                    ]);
+                }
+            }
+        }
     }
 
     private function saveGalleryImages(Product $product, Request $request): void
