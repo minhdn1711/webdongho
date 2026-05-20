@@ -82,7 +82,6 @@ const form = useForm({
     rating: 5,
     comment: '',
     customer_name: '',
-    email: '',
     images: [],
 });
 
@@ -391,15 +390,9 @@ const addToCart = () => {
                     <div class="bg-gray-50 p-8">
                         <h3 class="text-lg font-bold uppercase tracking-widest mb-6">Viết đánh giá</h3>
                         <form @submit.prevent="submitReview" class="space-y-4">
-                             <div v-if="!user" class="space-y-4">
-                                 <div>
-                                     <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Tên của bạn</label>
-                                     <input v-model="form.customer_name" type="text" required class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm" />
-                                 </div>
-                                 <div>
-                                     <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Email</label>
-                                     <input v-model="form.email" type="email" required class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm" />
-                                 </div>
+                             <div v-if="!user">
+                                 <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Tên của bạn</label>
+                                 <input v-model="form.customer_name" type="text" required class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm" />
                              </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Đánh giá của bạn</label>

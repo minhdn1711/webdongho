@@ -17,15 +17,15 @@ class ReviewController extends Controller
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'required|string|min:10',
             'customer_name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
             'images.*' => 'nullable|image|max:2048',
         ]);
 
+        // Upload images to MinIO
         $imagePaths = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('reviews', 'public');
-                $imagePaths[] = Storage::url($path);
+                $path = $image->store('reviews', 's3');
+                $imagePaths[] = Storage::disk('s3')->url($path);
             }
         }
 
@@ -33,7 +33,6 @@ class ReviewController extends Controller
             'product_id' => $request->product_id,
             'user_id' => Auth::id(),
             'customer_name' => Auth::check() ? Auth::user()->name : ($request->customer_name ?? 'Khách'),
-            'email' => $request->email,
             'rating' => $request->rating,
             'comment' => $request->comment,
             'images' => !empty($imagePaths) ? $imagePaths : null,
