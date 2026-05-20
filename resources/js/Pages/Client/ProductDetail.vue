@@ -81,14 +81,34 @@ const form = useForm({
     product_id: props.product.id,
     rating: 5,
     comment: '',
-    customer_name: ''
+    customer_name: '',
+    email: '',
+    images: [],
 });
+
+const imagePreviews = ref([]);
+
+const handleReviewImages = (e) => {
+    const files = Array.from(e.target.files);
+    if (form.images.length + files.length > 5) {
+        alert('Tối đa 5 ảnh');
+        return;
+    }
+    form.images = [...form.images, ...files].slice(0, 5);
+    imagePreviews.value = form.images.map(f => URL.createObjectURL(f));
+};
+
+const removeReviewImage = (index) => {
+    form.images.splice(index, 1);
+    imagePreviews.value.splice(index, 1);
+};
 
 const submitReview = () => {
     form.post(route('reviews.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            form.reset('comment', 'rating');
+            form.reset('comment', 'rating', 'images');
+            imagePreviews.value = [];
             alert('Cảm ơn bạn đã đánh giá!');
         }
     });
@@ -360,6 +380,9 @@ const addToCart = () => {
                                     </div>
                                 </div>
                                 <p class="text-sm text-gray-600 pl-14">{{ review.comment }}</p>
+                                <div v-if="review.images && review.images.length" class="pl-14 mt-3 flex gap-2 flex-wrap">
+                                    <img v-for="(img, idx) in review.images" :key="idx" :src="img" class="w-16 h-16 object-cover rounded border">
+                                </div>
                             </div>
                         </div>
                         <div v-else class="text-gray-500 italic text-sm">Chưa có đánh giá nào cho sản phẩm này.</div>
@@ -368,10 +391,16 @@ const addToCart = () => {
                     <div class="bg-gray-50 p-8">
                         <h3 class="text-lg font-bold uppercase tracking-widest mb-6">Viết đánh giá</h3>
                         <form @submit.prevent="submitReview" class="space-y-4">
-                            <div v-if="!user">
-                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Tên của bạn</label>
-                                <input v-model="form.customer_name" type="text" required class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm" />
-                            </div>
+                             <div v-if="!user" class="space-y-4">
+                                 <div>
+                                     <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Tên của bạn</label>
+                                     <input v-model="form.customer_name" type="text" required class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm" />
+                                 </div>
+                                 <div>
+                                     <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Email</label>
+                                     <input v-model="form.email" type="email" required class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm" />
+                                 </div>
+                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Đánh giá của bạn</label>
                                 <div class="flex gap-2">
@@ -385,6 +414,23 @@ const addToCart = () => {
                                 <textarea v-model="form.comment" required rows="4" class="w-full border-gray-300 focus:border-[#d10000] focus:ring-0 text-sm resize-none"></textarea>
                                 <div v-if="form.errors.comment" class="text-red-500 text-xs mt-1">{{ form.errors.comment }}</div>
                             </div>
+
+                            <!-- Upload ảnh đánh giá -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Ảnh minh họa (tối đa 5)</label>
+                                <div class="flex flex-wrap gap-3 mb-3">
+                                    <div v-for="(preview, index) in imagePreviews" :key="index" class="relative w-20 h-20 border rounded overflow-hidden">
+                                        <img :src="preview" class="w-full h-full object-cover">
+                                        <button type="button" @click="removeReviewImage(index)"
+                                            class="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 flex items-center justify-center text-xs">×</button>
+                                    </div>
+                                    <label v-if="imagePreviews.length < 5" class="w-20 h-20 border-2 border-dashed flex items-center justify-center text-gray-400 cursor-pointer hover:border-[#d10000]">
+                                        <span class="text-3xl">+</span>
+                                        <input type="file" multiple accept="image/*" class="hidden" @change="handleReviewImages">
+                                    </label>
+                                </div>
+                            </div>
+
                             <button type="submit" :disabled="form.processing" class="bg-black text-white px-8 py-3 uppercase font-bold tracking-widest text-sm hover:bg-[#d10000] transition w-full disabled:opacity-50">
                                 {{ form.processing ? 'Đang gửi...' : 'Gửi đánh giá' }}
                             </button>

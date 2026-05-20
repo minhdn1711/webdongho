@@ -55,7 +55,12 @@ const destroy = (id) => {
                                     <span v-for="i in 5" :key="i" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'">★</span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm max-w-xs truncate">{{ review.comment }}</td>
+                            <td class="px-6 py-4 text-sm max-w-xs">
+                                {{ review.comment }}
+                                <div v-if="review.images && review.images.length" class="flex gap-1 mt-2">
+                                    <img v-for="(img, i) in review.images" :key="i" :src="img" class="w-12 h-12 object-cover rounded border">
+                                </div>
+                            </td>
                             <td class="px-6 py-4">
                                 <span v-if="review.is_approved" class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Đã duyệt</span>
                                 <span v-else class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">Chờ duyệt</span>
