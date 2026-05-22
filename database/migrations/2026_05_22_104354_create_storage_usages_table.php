@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('storage_usages')) {
+            return;
+        }
+
         Schema::create('storage_usages', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('used_bytes')->default(0);

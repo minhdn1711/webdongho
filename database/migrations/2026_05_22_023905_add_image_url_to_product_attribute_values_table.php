@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('product_attribute_values', 'image_url')) {
+            return;
+        }
+
         Schema::table('product_attribute_values', function (Blueprint $table) {
             $table->string('image_url')->nullable()->after('attribute_value_id');
         });
