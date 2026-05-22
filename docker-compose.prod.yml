@@ -12,6 +12,7 @@ services:
       - .:/var/www
     networks:
       - webdongho-network
+      - miliwebseo_shared
 
   # Nginx Service (Nội bộ cho App)
   web:
@@ -53,6 +54,7 @@ services:
     command: php artisan queue:work --timeout=120
     networks:
       - webdongho-network
+      - miliwebseo_shared
     depends_on:
       - db
       - app
@@ -68,6 +70,7 @@ services:
     command: php artisan schedule:work
     networks:
       - webdongho-network
+      - miliwebseo_shared
     depends_on:
       - db
       - app
@@ -96,6 +99,8 @@ services:
 networks:
   webdongho-network:
     driver: bridge
+  miliwebseo_shared:
+    external: true
 
 volumes:
   db_data:
