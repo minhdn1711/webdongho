@@ -67,7 +67,7 @@ class ProductController extends Controller
 
         // Save product attributes
         if ($request->has('product_attributes')) {
-            $this->saveProductAttributes($product, $request->product_attributes);
+            $this->saveProductAttributes($product, $request->product_attributes, $request->attribute_images);
         }
 
         $this->saveGalleryImages($product, $request);
@@ -128,7 +128,7 @@ class ProductController extends Controller
         // Save product attributes
         if ($request->has('product_attributes')) {
             $product->productAttributeValues()->delete();
-            $this->saveProductAttributes($product, $request->product_attributes);
+            $this->saveProductAttributes($product, $request->product_attributes, $request->attribute_images);
         }
 
         // Delete removed gallery images
@@ -191,7 +191,7 @@ class ProductController extends Controller
         return response()->json(['images' => $images]);
     }
 
-    private function saveProductAttributes(Product $product, array $attributes): void
+    private function saveProductAttributes(Product $product, array $attributes, ?array $attributeImages = []): void
     {
         foreach ($attributes as $attributeId => $attributeValueIds) {
             if (is_array($attributeValueIds)) {
@@ -200,6 +200,7 @@ class ProductController extends Controller
                         'product_id' => $product->id,
                         'attribute_id' => $attributeId,
                         'attribute_value_id' => $valueId,
+                        'image_url' => $attributeImages[$valueId] ?? null,
                     ]);
                 }
             }

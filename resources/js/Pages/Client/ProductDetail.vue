@@ -62,15 +62,18 @@ const groupedAttributes = computed(() => {
     for (const pav of props.product.product_attribute_values || []) {
         const id = pav.attribute_id;
         if (!groups[id]) groups[id] = { attribute: pav.attribute, values: [] };
-        groups[id].values.push(pav.attribute_value);
+        groups[id].values.push({ ...pav.attribute_value, image_url: pav.image_url });
     }
     return Object.values(groups);
 });
 
 const selectedAttributes = reactive({}); // { "Màu sắc": "Đỏ", ... }
 
-const selectAttribute = (attrName, valueName) => {
+const selectAttribute = (attrName, valueName, imageUrl = null) => {
     selectedAttributes[attrName] = valueName;
+    if (imageUrl) {
+        setActiveImage(imageUrl);
+    }
 };
 
 const allSelected = computed(() =>
@@ -235,7 +238,7 @@ const addToCart = () => {
                                 <button
                                     v-for="val in group.values"
                                     :key="val.id"
-                                    @click="selectAttribute(group.attribute.name, val.value)"
+                                    @click="selectAttribute(group.attribute.name, val.value, val.image_url)"
                                     :title="val.value"
                                     class="w-8 h-8 rounded-full border-2 transition-all"
                                     :style="{ backgroundColor: val.meta_value }"
@@ -250,7 +253,7 @@ const addToCart = () => {
                                 <button
                                     v-for="val in group.values"
                                     :key="val.id"
-                                    @click="selectAttribute(group.attribute.name, val.value)"
+                                    @click="selectAttribute(group.attribute.name, val.value, val.image_url)"
                                     class="px-4 py-1.5 border text-sm font-medium transition-all"
                                     :class="selectedAttributes[group.attribute.name] === val.value
                                         ? 'border-black bg-black text-white'
