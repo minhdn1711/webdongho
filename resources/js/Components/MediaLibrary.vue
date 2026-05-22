@@ -23,14 +23,21 @@ const searchQuery = ref('');
 const selectedImage = ref(null);
 const selectedImages = ref([]);
 
+const fetchError = ref('');
+
 const fetchImages = async () => {
     loading.value = true;
+    fetchError.value = '';
     try {
         const response = await axios.get(route('admin.images.index'), {
             headers: { 'Accept': 'application/json' }
         });
-        images.value = response.data.images;
+        images.value = response.data.images || [];
+        if (response.data.error) {
+            fetchError.value = response.data.error;
+        }
     } catch (error) {
+        fetchError.value = error.response?.data?.error || error.message || 'Không thể tải thư viện ảnh.';
         console.error('Lỗi khi tải thư viện ảnh:', error);
     } finally {
         loading.value = false;
@@ -182,6 +189,13 @@ const hasSelection = computed(() => {
                         <div class="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
                         <div class="h-4 w-24 bg-gray-300 rounded"></div>
                     </div>
+                </div>
+
+                <div v-else-if="fetchError" class="flex flex-col items-center justify-center h-full text-red-500">
+                    <svg class="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p class="font-medium mb-1">Lỗi kết nối Storage</p>
+                    <p class="text-xs text-gray-500 text-center max-w-xs">{{ fetchError }}</p>
+                    <button @click="fetchImages" class="mt-3 text-sm text-blue-600 hover:underline">Thử lại</button>
                 </div>
 
                 <div v-else-if="filteredImages.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400">
