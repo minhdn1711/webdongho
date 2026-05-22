@@ -73,6 +73,8 @@ const selectAttribute = (attrName, valueName, imageUrl = null) => {
     selectedAttributes[attrName] = valueName;
     if (imageUrl) {
         setActiveImage(imageUrl);
+    } else {
+        setActiveImage(allImages.value[0] || '');
     }
 };
 
