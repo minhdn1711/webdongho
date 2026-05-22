@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Services\StorageService;
 use Illuminate\Support\Facades\Http;
 
 class ProductController extends Controller
@@ -58,7 +59,7 @@ class ProductController extends Controller
         $data['category_id'] = $request->category_ids[0] ?? null;
 
         if ($request->hasFile('image_file')) {
-            $path = $request->file('image_file')->store('products');
+            $path = StorageService::upload($request->file('image_file'), 'products');
             $data['image'] = Storage::url($path);
         }
 
@@ -116,9 +117,9 @@ class ProductController extends Controller
         if ($request->hasFile('image_file')) {
             if ($product->image && str_contains($product->image, '/storage/products/')) {
                 $oldPath = str_replace(Storage::url(''), '', $product->image);
-                Storage::delete($oldPath);
+                StorageService::delete($oldPath);
             }
-            $path = $request->file('image_file')->store('products');
+            $path = StorageService::upload($request->file('image_file'), 'products');
             $data['image'] = Storage::url($path);
         }
 
@@ -213,7 +214,7 @@ class ProductController extends Controller
 
         if ($request->hasFile('gallery_files')) {
             foreach ($request->file('gallery_files') as $file) {
-                $path = $file->store('products');
+                $path = StorageService::upload($file, 'products');
                 $product->productImages()->create([
                     'image_url'  => Storage::url($path),
                     'sort_order' => $sort++,

@@ -7,6 +7,7 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use App\Services\StorageService;
 
 class SettingController extends Controller
 {
@@ -24,7 +25,7 @@ class SettingController extends Controller
 
         foreach ($data as $key => $value) {
             if ($request->hasFile($key)) {
-                $path = $request->file($key)->store('settings');
+                $path = StorageService::upload($request->file($key), 'settings');
                 $value = Storage::url($path);
             } elseif ($request->$key && is_string($request->$key) && str_starts_with($request->$key, 'http')) {
                 // Nếu là URL từ thư viện
