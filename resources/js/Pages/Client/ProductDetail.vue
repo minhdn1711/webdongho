@@ -242,12 +242,14 @@ const addToCart = () => {
                                     :key="val.id"
                                     @click="selectAttribute(group.attribute.name, val.value, val.image_url)"
                                     :title="val.value"
-                                    class="w-8 h-8 rounded-full border-2 transition-all"
-                                    :style="{ backgroundColor: val.meta_value }"
+                                    class="relative w-10 h-10 rounded border-2 transition-all overflow-hidden"
+                                    :style="val.image_url ? {} : { backgroundColor: val.meta_value }"
                                     :class="selectedAttributes[group.attribute.name] === val.value
-                                        ? 'border-black scale-110 ring-2 ring-black ring-offset-1'
-                                        : 'border-gray-300 hover:border-gray-500'"
-                                />
+                                        ? 'border-[#d10000] scale-110 ring-1 ring-[#d10000] shadow-md z-10'
+                                        : 'border-gray-200 hover:border-gray-400'"
+                                >
+                                    <img v-if="val.image_url" :src="val.image_url" class="w-full h-full object-cover" :alt="val.value" />
+                                </button>
                             </div>
 
                             <!-- Button / Text type -->
