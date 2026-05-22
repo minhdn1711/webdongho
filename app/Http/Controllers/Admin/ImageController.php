@@ -11,52 +11,58 @@ class ImageController extends Controller
 {
     public function index(Request $request)
     {
+        $isAjax = $request->wantsJson() && !$request->header('X-Inertia');
+
         try {
             $folders = ['images', 'banners', 'products'];
             $allFiles = [];
             foreach ($folders as $folder) {
                 if (Storage::exists($folder)) {
-                    $allFiles = array_merge($allFiles, Storage::allFiles($folder));
+                    $files = Storage::allFiles($folder);
+                    if (is_array($files)) {
+                        $allFiles = array_merge($allFiles, $files);
+                    }
                 }
             }
 
-            $images = array_map(function ($file) {
-                return [
-                    'name' => basename($file),
-                    'url' => Storage::url($file),
-                    'path' => $file,
-                    'size' => Storage::size($file),
-                    'last_modified' => Storage::lastModified($file),
-                ];
-            }, $allFiles);
+            $images = [];
+            foreach ($allFiles as $file) {
+                try {
+                    $images[] = [
+                        'name'          => basename($file),
+                        'url'           => Storage::url($file),
+                        'path'          => $file,
+                        'size'          => Storage::size($file) ?: 0,
+                        'last_modified' => Storage::lastModified($file) ?: 0,
+                    ];
+                } catch (\Throwable $e) {
+                    // skip files that can't be accessed
+                }
+            }
 
-            // Sort by last modified
-            usort($images, function ($a, $b) {
-                return $b['last_modified'] <=> $a['last_modified'];
-            });
+            usort($images, fn($a, $b) => $b['last_modified'] <=> $a['last_modified']);
 
-            if ($request->wantsJson()) {
+            if ($isAjax) {
                 return response()->json(['images' => $images]);
             }
 
-            return Inertia::render('Admin/Images/Index', [
-                'images' => $images
-            ]);
-        } catch (\Exception $e) {
+            return Inertia::render('Admin/Images/Index', ['images' => $images]);
+
+        } catch (\Throwable $e) {
             \Log::error('Media Library Error: ' . $e->getMessage(), [
-                'exception' => $e,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
-            if ($request->wantsJson()) {
+            if ($isAjax) {
                 return response()->json([
-                    'error' => $e->getMessage(),
-                    'debug_info' => 'Kiểm tra log để biết thêm chi tiết'
-                ], 500);
+                    'images' => [],
+                    'error'  => $e->getMessage(),
+                ]);
             }
+
             return Inertia::render('Admin/Images/Index', [
                 'images' => [],
-                'error' => 'Lỗi kết nối Storage: ' . $e->getMessage()
+                'error'  => 'Lỗi Storage: ' . $e->getMessage(),
             ]);
         }
     }
