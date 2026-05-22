@@ -1,19 +1,4 @@
 services:
-  # Nginx Proxy Manager (Quản lý SSL và Proxy)
-  nginx-proxy:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: webdongho-proxy
-    restart: always
-    ports:
-      - '80:80'   # HTTP
-      - '443:443' # HTTPS
-      - '81:81'   # Giao diện quản lý
-    volumes:
-      - ./docker/proxy/data:/data
-      - ./docker/proxy/letsencrypt:/etc/letsencrypt
-    networks:
-      - webdongho-network
-
   # PHP App Service
   app:
     build:
