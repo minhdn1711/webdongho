@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\StorageService;
 use Inertia\Inertia;
 
 class BannerController extends Controller
@@ -37,7 +38,7 @@ class BannerController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('banners');
+            $path = StorageService::upload($request->file('image'), 'banners');
         } else {
             // Nếu chọn từ thư viện, nó gửi lên dạng URL hoặc Path.
             // Chúng ta cần lấy phần path tương đối để lưu vào DB.
@@ -77,9 +78,9 @@ class BannerController extends Controller
         if ($request->hasFile('image')) {
             // Xóa ảnh cũ trên S3 nếu là ảnh mới hoàn toàn
             if ($banner->image) {
-                Storage::delete($banner->image);
+                StorageService::delete($banner->image);
             }
-            $data['image'] = $request->file('image')->store('banners');
+            $data['image'] = StorageService::upload($request->file('image'), 'banners');
         } elseif ($request->image && is_string($request->image) && !str_contains($request->image, $banner->image)) {
             // Nếu chọn ảnh khác từ thư viện
             $path = str_replace(Storage::url(''), '', $request->image);
@@ -94,7 +95,7 @@ class BannerController extends Controller
     public function destroy(Banner $banner)
     {
         if ($banner->image) {
-            Storage::delete($banner->image);
+            StorageService::delete($banner->image);
         }
         $banner->delete();
 

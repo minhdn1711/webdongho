@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\StorageService;
 use Inertia\Inertia;
 
 class ImageController extends Controller
@@ -75,7 +76,7 @@ class ImageController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $image->store('images');
+                StorageService::upload($image, 'images');
             }
         }
 
@@ -86,7 +87,7 @@ class ImageController extends Controller
     {
         $path = $request->input('path');
         if (Storage::exists($path)) {
-            Storage::delete($path);
+            StorageService::delete($path);
             return back()->with('success', 'Xóa ảnh thành công!');
         }
         return back()->with('error', 'Không tìm thấy ảnh!');

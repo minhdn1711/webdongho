@@ -18,6 +18,8 @@ const props = defineProps({
 const imagePreview = ref(null);
 const showMediaLibrary = ref(false);
 const showGalleryLibrary = ref(false);
+const showAttributeImageLibrary = ref(false);
+const activeAttributeForImage = ref(null);
 
 // Gallery management
 // Items: { id: number|null, url: string, file: File|null, preview: string }
@@ -58,6 +60,11 @@ const form = useForm({
                 .map(pav => pav.attribute_value_id)
         ])
     ),
+    attribute_images: Object.fromEntries(
+        (props.product.product_attribute_values || [])
+            .filter(pav => pav.image_url)
+            .map(pav => [pav.attribute_value_id, pav.image_url])
+    ),
 });
 
 const pancakeConfigured = usePage().props.pancake_configured;
@@ -90,6 +97,17 @@ const removeImage = () => {
     imagePreview.value = null;
     form.image_file = null;
     form.image = '';
+};
+
+const openAttributeImageLibrary = (valueId) => {
+    activeAttributeForImage.value = valueId;
+    showAttributeImageLibrary.value = true;
+};
+
+const handleAttributeImageSelect = (image) => {
+    if (activeAttributeForImage.value) {
+        form.attribute_images[activeAttributeForImage.value] = image.url;
+    }
 };
 
 // Gallery handlers
@@ -280,19 +298,31 @@ const submit = () => {
                                         <label :for="'attr-' + value.id" class="ml-2 text-[13px] text-[#50575e] cursor-pointer hover:text-[#2271b1]">{{ value.value }}</label>
                                     </div>
                                 </div>
-                                <div v-else-if="attribute.type === 'color'" class="flex flex-wrap gap-2">
-                                    <div v-for="value in attribute.attribute_values" :key="value.id" class="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            :id="'attr-' + value.id"
-                                            :value="value.id"
-                                            v-model="form.product_attributes[attribute.id]"
-                                            class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
-                                        />
-                                        <label :for="'attr-' + value.id" class="ml-2 cursor-pointer flex items-center gap-2">
-                                            <div :style="{ backgroundColor: value.meta_value }" class="w-6 h-6 border border-gray-300 rounded"></div>
-                                            <span class="text-[13px] text-[#50575e]">{{ value.value }}</span>
-                                        </label>
+                                <div v-else-if="attribute.type === 'color'" class="space-y-3">
+                                    <div v-for="value in attribute.attribute_values" :key="value.id" class="flex items-center flex-wrap gap-2">
+                                        <div class="flex items-center w-40">
+                                            <input
+                                                type="checkbox"
+                                                :id="'attr-' + value.id"
+                                                :value="value.id"
+                                                v-model="form.product_attributes[attribute.id]"
+                                                class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4"
+                                            />
+                                            <label :for="'attr-' + value.id" class="ml-2 cursor-pointer flex items-center gap-2">
+                                                <div :style="{ backgroundColor: value.meta_value }" class="w-6 h-6 border border-gray-300 rounded"></div>
+                                                <span class="text-[13px] text-[#50575e]">{{ value.value }}</span>
+                                            </label>
+                                        </div>
+                                        <div v-if="form.product_attributes[attribute.id].includes(value.id)" class="flex items-center gap-2 ml-4">
+                                            <div class="flex flex-col gap-1">
+                                                <input v-model="form.attribute_images[value.id]" type="text" placeholder="URL ảnh (Tùy chọn)" class="border-[#8c8f94] rounded text-[12px] py-1 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1] w-48" />
+                                                <button type="button" @click.prevent="openAttributeImageLibrary(value.id)" class="text-[11px] text-[#2271b1] hover:underline text-left">Chọn từ thư viện</button>
+                                            </div>
+                                            <img v-if="form.attribute_images[value.id]" :src="form.attribute_images[value.id]" class="w-10 h-10 object-cover rounded border border-gray-200" />
+                                            <button v-if="form.attribute_images[value.id]" @click.prevent="form.attribute_images[value.id] = ''" type="button" class="text-red-500 hover:text-red-700" title="Xóa ảnh">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div v-else-if="attribute.type === 'button'" class="flex flex-wrap gap-2">
@@ -486,6 +516,13 @@ const submit = () => {
             :multiSelect="true"
             @close="showGalleryLibrary = false"
             @select="handleGalleryLibrarySelect"
+        />
+
+        <!-- Media Library - for attribute image -->
+        <MediaLibrary
+            :show="showAttributeImageLibrary"
+            @close="showAttributeImageLibrary = false"
+            @select="handleAttributeImageSelect"
         />
 
         <!-- Pancake Config Warning Modal -->

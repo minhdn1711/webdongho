@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Services\StorageService;
 use Illuminate\Support\Facades\Http;
 
 class ProductController extends Controller
@@ -58,7 +59,7 @@ class ProductController extends Controller
         $data['category_id'] = $request->category_ids[0] ?? null;
 
         if ($request->hasFile('image_file')) {
-            $path = $request->file('image_file')->store('products');
+            $path = StorageService::upload($request->file('image_file'), 'products');
             $data['image'] = Storage::url($path);
         }
 
@@ -67,7 +68,7 @@ class ProductController extends Controller
 
         // Save product attributes
         if ($request->has('product_attributes')) {
-            $this->saveProductAttributes($product, $request->product_attributes);
+            $this->saveProductAttributes($product, $request->product_attributes, $request->attribute_images);
         }
 
         $this->saveGalleryImages($product, $request);
@@ -116,9 +117,9 @@ class ProductController extends Controller
         if ($request->hasFile('image_file')) {
             if ($product->image && str_contains($product->image, '/storage/products/')) {
                 $oldPath = str_replace(Storage::url(''), '', $product->image);
-                Storage::delete($oldPath);
+                StorageService::delete($oldPath);
             }
-            $path = $request->file('image_file')->store('products');
+            $path = StorageService::upload($request->file('image_file'), 'products');
             $data['image'] = Storage::url($path);
         }
 
@@ -128,7 +129,7 @@ class ProductController extends Controller
         // Save product attributes
         if ($request->has('product_attributes')) {
             $product->productAttributeValues()->delete();
-            $this->saveProductAttributes($product, $request->product_attributes);
+            $this->saveProductAttributes($product, $request->product_attributes, $request->attribute_images);
         }
 
         // Delete removed gallery images
@@ -191,7 +192,7 @@ class ProductController extends Controller
         return response()->json(['images' => $images]);
     }
 
-    private function saveProductAttributes(Product $product, array $attributes): void
+    private function saveProductAttributes(Product $product, array $attributes, ?array $attributeImages = []): void
     {
         foreach ($attributes as $attributeId => $attributeValueIds) {
             if (is_array($attributeValueIds)) {
@@ -200,6 +201,7 @@ class ProductController extends Controller
                         'product_id' => $product->id,
                         'attribute_id' => $attributeId,
                         'attribute_value_id' => $valueId,
+                        'image_url' => $attributeImages[$valueId] ?? null,
                     ]);
                 }
             }
@@ -212,7 +214,7 @@ class ProductController extends Controller
 
         if ($request->hasFile('gallery_files')) {
             foreach ($request->file('gallery_files') as $file) {
-                $path = $file->store('products');
+                $path = StorageService::upload($file, 'products');
                 $product->productImages()->create([
                     'image_url'  => Storage::url($path),
                     'sort_order' => $sort++,
