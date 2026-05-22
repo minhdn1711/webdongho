@@ -101,23 +101,23 @@ services:
     networks:
       - webdongho-network
 
-  minio:
-    image: quay.io/minio/minio:latest
-    container_name: minio
-    ports:
-      - "9005:9000" # Changed from 9000 to 9005
-      - "9006:9001" # Changed from 9001 to 9006
-    volumes:
-      - ./data/minio:/data
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin123
-      MINIO_SERVER_URL: "https://s3.lamtimeshop.vn"
-      MINIO_BROWSER_REDIRECT_URL: "http://165.99.14.54:9001"
-    command: server /data --console-address ":9001"
-    networks:
-      - webdongho-network
-    restart: always
+  # minio:
+  #   image: quay.io/minio/minio:latest
+  #   container_name: minio
+  #   ports:
+  #     - "9005:9000" # Changed from 9000 to 9005
+  #     - "9006:9001" # Changed from 9001 to 9006
+  #   volumes:
+  #     - ./data/minio:/data
+  #   environment:
+  #     MINIO_ROOT_USER: admin
+  #     MINIO_ROOT_PASSWORD: admin123
+  #     MINIO_SERVER_URL: "https://s3.lamtimeshop.vn"
+  #     MINIO_BROWSER_REDIRECT_URL: "http://165.99.14.54:9001"
+  #   command: server /data --console-address ":9001"
+  #   networks:
+  #     - webdongho-network
+  #   restart: always
 
 networks:
   webdongho-network:
