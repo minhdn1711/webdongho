@@ -17,6 +17,8 @@ const props = defineProps({
 const imagePreview = ref(null);
 const showMediaLibrary = ref(false);
 const showGalleryLibrary = ref(false);
+const showAttributeImageLibrary = ref(false);
+const activeAttributeForImage = ref(null);
 
 // Gallery management
 const galleryItems = ref([]); // { url: string, file: File|null, preview: string }
@@ -79,6 +81,17 @@ const removeImage = () => {
     imagePreview.value = null;
     form.image_file = null;
     form.image = '';
+};
+
+const openAttributeImageLibrary = (valueId) => {
+    activeAttributeForImage.value = valueId;
+    showAttributeImageLibrary.value = true;
+};
+
+const handleAttributeImageSelect = (image) => {
+    if (activeAttributeForImage.value) {
+        form.attribute_images[activeAttributeForImage.value] = image.url;
+    }
 };
 
 // Gallery handlers
@@ -274,8 +287,14 @@ const submit = () => {
                                             </label>
                                         </div>
                                         <div v-if="form.product_attributes[attribute.id].includes(value.id)" class="flex items-center gap-2 ml-4">
-                                            <input v-model="form.attribute_images[value.id]" type="text" placeholder="URL ảnh (Tùy chọn)" class="border-[#8c8f94] rounded text-[12px] py-1 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1] w-64" />
-                                            <img v-if="form.attribute_images[value.id]" :src="form.attribute_images[value.id]" class="w-8 h-8 object-cover rounded border border-gray-200" />
+                                            <div class="flex flex-col gap-1">
+                                                <input v-model="form.attribute_images[value.id]" type="text" placeholder="URL ảnh (Tùy chọn)" class="border-[#8c8f94] rounded text-[12px] py-1 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1] w-48" />
+                                                <button type="button" @click.prevent="openAttributeImageLibrary(value.id)" class="text-[11px] text-[#2271b1] hover:underline text-left">Chọn từ thư viện</button>
+                                            </div>
+                                            <img v-if="form.attribute_images[value.id]" :src="form.attribute_images[value.id]" class="w-10 h-10 object-cover rounded border border-gray-200" />
+                                            <button v-if="form.attribute_images[value.id]" @click.prevent="form.attribute_images[value.id] = ''" type="button" class="text-red-500 hover:text-red-700" title="Xóa ảnh">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -454,6 +473,8 @@ const submit = () => {
         <MediaLibrary :show="showMediaLibrary" @close="showMediaLibrary = false" @select="handleImageSelect" />
         <MediaLibrary :show="showGalleryLibrary" title="Chọn ảnh cho thư viện sản phẩm" :multiSelect="true"
             @close="showGalleryLibrary = false" @select="handleGalleryLibrarySelect" />
+            
+        <MediaLibrary :show="showAttributeImageLibrary" @close="showAttributeImageLibrary = false" @select="handleAttributeImageSelect" />
 
         <Modal :show="showPancakeModal" @close="closePancakeModal">
             <div class="p-6">
