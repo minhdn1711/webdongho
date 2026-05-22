@@ -3,7 +3,9 @@
 ## 1. Đăng nhập Admin
 
 - Truy cập: `https://lamtimeshop.com/admin/login`
-- Tài khoản mặc định
+- Tài khoản mặc định:
+  - Email: `admin@example.com`
+  - Mật khẩu: `password`
 
 > **Lưu ý**: Nên đổi mật khẩu ngay sau lần đăng nhập đầu tiên.
 
