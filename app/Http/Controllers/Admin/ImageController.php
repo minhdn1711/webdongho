@@ -50,9 +50,14 @@ class ImageController extends Controller
             return Inertia::render('Admin/Images/Index', ['images' => $images]);
 
         } catch (\Throwable $e) {
-            \Log::error('Media Library Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            // Log safely — nếu log thất bại không được throw ra ngoài
+            try {
+                \Log::error('Media Library Error: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            } catch (\Throwable) {
+                // ignore log failure
+            }
 
             if ($isAjax) {
                 return response()->json([
