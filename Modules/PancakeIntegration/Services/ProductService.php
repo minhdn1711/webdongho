@@ -99,7 +99,7 @@ class ProductService
 
                     $variations[] = [
                         'fields'              => $fields,
-                        'images'              => $variationImages,
+                        'images'              => $variationImages, // mảng URL string theo Pancake API
                         'retail_price'        => $retailPrice,
                         'last_imported_price' => (float) $product->price,
                         'custom_id'           => $sku . '-' . implode('-', $labelParts),
@@ -110,7 +110,7 @@ class ProductService
                 // Sản phẩm đơn giản — một biến thể mặc định
                 $variations[] = [
                     'fields'              => [],
-                    'images'              => !empty($mainImages) ? [$mainImages[0]] : [],
+                    'images'              => !empty($mainImages) ? [$mainImages[0]] : [], // URL string theo Pancake API
                     'retail_price'        => $retailPrice,
                     'last_imported_price' => (float) $product->price,
                     'custom_id'           => $sku,
@@ -122,17 +122,13 @@ class ProductService
             $payload = [
                 'product' => [
                     'name'               => $product->name,
-                    'short_description'  => $product->short_description,
-                    'category_id'        => $categoryMapping ? $categoryMapping->pancake_category_id : null,
-                    'sku'                => $sku,
+                    'note_product'       => $product->short_description,
+                    'category_ids'       => $categoryMapping ? [$categoryMapping->pancake_category_id] : [],
+                    'custom_id'          => $sku,
                     'description'        => $product->description,
-                    'price'              => $retailPrice,
-                    'original_price'     => (float) $product->price,
-                    'inventory_quantity' => (int) $product->stock,
-                    'images'             => array_map(fn($url) => ['src' => $url], $mainImages),
-                    'barcode'            => $product->barcode,
                     'product_attributes' => $productAttributes,
                     'variations'         => $variations,
+                    'is_published'       => true,
                 ],
             ];
 
@@ -146,7 +142,7 @@ class ProductService
 
             if ($response->successful()) {
                 $data             = $response->json();
-                $pancakeProductId = $data['id'] ?? $data['product']['id'] ?? null;
+                $pancakeProductId = $data['data']['id'] ?? $data['id'] ?? null;
 
                 if ($pancakeProductId) {
                     PancakeProductMapping::updateOrCreate(
