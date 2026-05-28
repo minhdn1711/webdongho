@@ -30,8 +30,10 @@ class ProductService
         try {
             $mapping = PancakeProductMapping::where('product_id', $product->id)->first();
             $categoryMapping = \Modules\PancakeIntegration\Models\PancakeCategoryMapping::where('category_id', $product->category_id)->first();
-            
+
             $sku = $product->sku ?: 'SKU-' . $product->id;
+
+            $variations = $this->buildVariations($product, $sku);
 
             $payload = [
                 'product' => [
@@ -45,16 +47,7 @@ class ProductService
                     'inventory_quantity' => (int) $product->stock,
                     'images' => $product->image ? [['src' => url($product->image)]] : [],
                     'barcode' => $product->barcode,
-                    // Thêm phiên bản mặc định để hiển thị trên POS
-                    'variations' => [
-                        [
-                            'fields' => [],
-                            'retail_price' => (float) ($product->sale_price ?: $product->price),
-                            'inventory_quantity' => (int) $product->stock,
-                            'sku' => $sku,
-                            'barcode' => $product->barcode,
-                        ]
-                    ]
+                    'variations' => $variations,
                 ]
             ];
 
@@ -93,6 +86,76 @@ class ProductService
             $this->logSync($product, 'sync', 'failed', $payload ?? [], null, $e->getMessage());
             return false;
         }
+    }
+
+    protected function buildVariations(Product $product, string $baseSku): array
+    {
+        // Load tất cả attribute values của sản phẩm, group theo attribute
+        $attrValues = $product->productAttributeValues()
+            ->with(['attribute', 'attributeValue'])
+            ->get()
+            ->groupBy('attribute_id');
+
+        if ($attrValues->isEmpty()) {
+            // Không có biến thể → 1 phiên bản mặc định
+            return [[
+                'fields' => [],
+                'retail_price' => (float) ($product->sale_price ?: $product->price),
+                'inventory_quantity' => (int) $product->stock,
+                'sku' => $baseSku,
+                'barcode' => $product->barcode,
+            ]];
+        }
+
+        // Tạo tất cả tổ hợp (cartesian product) của các thuộc tính
+        $groups = [];
+        foreach ($attrValues as $attributeId => $values) {
+            $groups[] = $values->map(fn($v) => [
+                'field_name'  => $v->attribute->name ?? 'Thuộc tính',
+                'field_value' => $v->attributeValue->value ?? '',
+                'image'       => $v->image_url,
+                'value_id'    => $v->attribute_value_id,
+            ])->toArray();
+        }
+
+        // Cartesian product
+        $combinations = [[]];
+        foreach ($groups as $group) {
+            $newCombinations = [];
+            foreach ($combinations as $existing) {
+                foreach ($group as $item) {
+                    $newCombinations[] = array_merge($existing, [$item]);
+                }
+            }
+            $combinations = $newCombinations;
+        }
+
+        $variations = [];
+        foreach ($combinations as $i => $combo) {
+            $fields = array_map(fn($c) => [
+                'name'  => $c['field_name'],
+                'value' => $c['field_value'],
+            ], $combo);
+
+            // Lấy ảnh từ biến thể màu (nếu có)
+            $image = collect($combo)->first(fn($c) => !empty($c['image']));
+
+            $variation = [
+                'fields'             => $fields,
+                'retail_price'       => (float) ($product->sale_price ?: $product->price),
+                'inventory_quantity' => (int) $product->stock,
+                'sku'                => $baseSku . ($i > 0 ? '-' . ($i + 1) : ''),
+                'barcode'            => $product->barcode,
+            ];
+
+            if ($image) {
+                $variation['image'] = ['src' => $image['image']];
+            }
+
+            $variations[] = $variation;
+        }
+
+        return $variations;
     }
 
     protected function logSync($product, $action, $status, $payload, $response, $error = null)
