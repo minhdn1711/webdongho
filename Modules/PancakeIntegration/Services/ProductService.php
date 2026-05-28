@@ -35,6 +35,18 @@ class ProductService
 
             $variations = $this->buildVariations($product, $sku);
 
+            // Build images array: main image + gallery (all stored as full URLs already)
+            $product->loadMissing('productImages');
+            $images = [];
+            if ($product->image) {
+                $images[] = ['src' => $product->image];
+            }
+            foreach ($product->productImages as $img) {
+                if ($img->image_url) {
+                    $images[] = ['src' => $img->image_url];
+                }
+            }
+
             $payload = [
                 'product' => [
                     'name' => $product->name,
@@ -45,7 +57,7 @@ class ProductService
                     'price' => (float) $product->price,
                     'original_price' => (float) ($product->sale_price ?: $product->price),
                     'inventory_quantity' => (int) $product->stock,
-                    'images' => $product->image ? [['src' => url($product->image)]] : [],
+                    'images' => $images,
                     'barcode' => $product->barcode,
                     'variations' => $variations,
                 ]
