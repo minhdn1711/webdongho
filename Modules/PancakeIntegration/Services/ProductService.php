@@ -19,62 +19,133 @@ class ProductService
 
     public function syncProduct(Product $product)
     {
-        $token = PancakeSetting::getValue('pancake_api_token');
-        $shopId = PancakeSetting::getValue('pancake_shop_id');
-
+        $token       = PancakeSetting::getValue('pancake_api_token');
+        $shopId      = PancakeSetting::getValue('pancake_shop_id');
         $syncEnabled = PancakeSetting::getValue('pancake_sync_products', '1');
+
         if (!$token || !$shopId || !($syncEnabled == '1' || $syncEnabled === true || $syncEnabled === 'true')) {
             return false;
         }
 
         try {
-            $mapping = PancakeProductMapping::where('product_id', $product->id)->first();
-            $categoryMapping = \Modules\PancakeIntegration\Models\PancakeCategoryMapping::where('category_id', $product->category_id)->first();
+            // Eager-load tất cả quan hệ cần dùng
+            $product->load([
+                'productAttributeValues.attribute',
+                'productAttributeValues.attributeValue',
+                'productImages',
+            ]);
 
-            $sku = $product->sku ?: 'SKU-' . $product->id;
+            $mapping         = PancakeProductMapping::where('product_id', $product->id)->first();
+            $categoryMapping = \Modules\PancakeIntegration\Models\PancakeCategoryMapping
+                                ::where('category_id', $product->category_id)->first();
 
-            $variations = $this->buildVariations($product, $sku);
+            $sku         = $product->sku ?: 'SKU-' . $product->id;
+            $retailPrice = (float) ($product->sale_price ?: $product->price);
 
-            // Build images array: main image + gallery (all stored as full URLs already)
-            $product->loadMissing('productImages');
-            $images = [];
+            // Ảnh chính + gallery — đã lưu là full URL, dùng trực tiếp
+            $mainImages = [];
             if ($product->image) {
-                $images[] = ['src' => $product->image];
+                $mainImages[] = $product->image;
             }
             foreach ($product->productImages as $img) {
                 if ($img->image_url) {
-                    $images[] = ['src' => $img->image_url];
+                    $mainImages[] = $img->image_url;
                 }
+            }
+
+            // Thuộc tính & biến thể
+            $productAttributes = [];
+            $variations        = [];
+            $pavCollection     = $product->productAttributeValues;
+
+            if ($pavCollection->isNotEmpty()) {
+                $grouped = $pavCollection->groupBy('attribute_id');
+
+                foreach ($grouped as $items) {
+                    $attribute = $items->first()->attribute;
+                    $values    = $items->map(fn($i) => $i->attributeValue->value)
+                                       ->unique()->values()->toArray();
+                    $productAttributes[] = [
+                        'name'   => $attribute->name,
+                        'values' => $values,
+                    ];
+                }
+
+                $groups = $grouped->map(fn($items) =>
+                    $items->map(fn($item) => [
+                        'attribute_name' => $item->attribute->name,
+                        'value'          => $item->attributeValue->value,
+                        'image_url'      => $item->image_url, // đã là full URL
+                    ])->values()->toArray()
+                )->values()->toArray();
+
+                $combinations = $this->cartesianProduct($groups);
+
+                foreach ($combinations as $combo) {
+                    $variationImages = [];
+                    foreach ($combo as $field) {
+                        if (!empty($field['image_url'])) {
+                            $variationImages[] = $field['image_url'];
+                            break;
+                        }
+                    }
+                    // Fallback về ảnh chính nếu biến thể không có ảnh riêng
+                    if (empty($variationImages) && !empty($mainImages)) {
+                        $variationImages = [$mainImages[0]];
+                    }
+
+                    $fields     = array_map(fn($f) => ['name' => $f['attribute_name'], 'value' => $f['value']], $combo);
+                    $labelParts = array_map(fn($f) => $f['value'], $combo);
+
+                    $variations[] = [
+                        'fields'              => $fields,
+                        'images'              => $variationImages,
+                        'retail_price'        => $retailPrice,
+                        'last_imported_price' => (float) $product->price,
+                        'custom_id'           => $sku . '-' . implode('-', $labelParts),
+                        'is_hidden'           => false,
+                    ];
+                }
+            } else {
+                // Sản phẩm đơn giản — một biến thể mặc định
+                $variations[] = [
+                    'fields'              => [],
+                    'images'              => !empty($mainImages) ? [$mainImages[0]] : [],
+                    'retail_price'        => $retailPrice,
+                    'last_imported_price' => (float) $product->price,
+                    'custom_id'           => $sku,
+                    'barcode'             => $product->barcode,
+                    'is_hidden'           => false,
+                ];
             }
 
             $payload = [
                 'product' => [
-                    'name' => $product->name,
-                    'short_description' => $product->short_description,
-                    'category_id' => $categoryMapping ? $categoryMapping->pancake_category_id : null,
-                    'sku' => $sku,
-                    'description' => $product->description,
-                    'price' => (float) $product->price,
-                    'original_price' => (float) ($product->sale_price ?: $product->price),
+                    'name'               => $product->name,
+                    'short_description'  => $product->short_description,
+                    'category_id'        => $categoryMapping ? $categoryMapping->pancake_category_id : null,
+                    'sku'                => $sku,
+                    'description'        => $product->description,
+                    'price'              => $retailPrice,
+                    'original_price'     => (float) $product->price,
                     'inventory_quantity' => (int) $product->stock,
-                    'images' => $images,
-                    'barcode' => $product->barcode,
-                    'variations' => $variations,
-                ]
+                    'images'             => array_map(fn($url) => ['src' => $url], $mainImages),
+                    'barcode'            => $product->barcode,
+                    'product_attributes' => $productAttributes,
+                    'variations'         => $variations,
+                ],
             ];
 
             if ($mapping && $mapping->pancake_product_id) {
-                // Update existing product
                 $response = $this->client->patch("/products/{$mapping->pancake_product_id}", $payload);
-                $action = 'update';
+                $action   = 'update';
             } else {
-                // Create new product
                 $response = $this->client->post('/products', $payload);
-                $action = 'create';
+                $action   = 'create';
             }
 
             if ($response->successful()) {
-                $data = $response->json();
+                $data             = $response->json();
                 $pancakeProductId = $data['id'] ?? $data['product']['id'] ?? null;
 
                 if ($pancakeProductId) {
@@ -82,7 +153,7 @@ class ProductService
                         ['product_id' => $product->id],
                         [
                             'pancake_product_id' => $pancakeProductId,
-                            'last_synced_at' => now(),
+                            'last_synced_at'     => now(),
                         ]
                     );
                 }
@@ -93,6 +164,7 @@ class ProductService
 
             $this->logSync($product, $action, 'failed', $payload, $response->json(), $response->body());
             return false;
+
         } catch (\Exception $e) {
             Log::error("Pancake Product Sync Error: " . $e->getMessage());
             $this->logSync($product, 'sync', 'failed', $payload ?? [], null, $e->getMessage());
@@ -100,85 +172,32 @@ class ProductService
         }
     }
 
-    protected function buildVariations(Product $product, string $baseSku): array
+    protected function cartesianProduct(array $groups): array
     {
-        // Load tất cả attribute values của sản phẩm, group theo attribute
-        $attrValues = $product->productAttributeValues()
-            ->with(['attribute', 'attributeValue'])
-            ->get()
-            ->groupBy('attribute_id');
+        $result = [[]];
 
-        if ($attrValues->isEmpty()) {
-            // Không có biến thể → 1 phiên bản mặc định
-            return [[
-                'fields' => [],
-                'retail_price' => (float) ($product->sale_price ?: $product->price),
-                'inventory_quantity' => (int) $product->stock,
-                'sku' => $baseSku,
-                'barcode' => $product->barcode,
-            ]];
-        }
-
-        // Tạo tất cả tổ hợp (cartesian product) của các thuộc tính
-        $groups = [];
-        foreach ($attrValues as $attributeId => $values) {
-            $groups[] = $values->map(fn($v) => [
-                'field_name'  => $v->attribute->name ?? 'Thuộc tính',
-                'field_value' => $v->attributeValue->value ?? '',
-                'image'       => $v->image_url,
-                'value_id'    => $v->attribute_value_id,
-            ])->toArray();
-        }
-
-        // Cartesian product
-        $combinations = [[]];
         foreach ($groups as $group) {
-            $newCombinations = [];
-            foreach ($combinations as $existing) {
+            $newResult = [];
+            foreach ($result as $existing) {
                 foreach ($group as $item) {
-                    $newCombinations[] = array_merge($existing, [$item]);
+                    $newResult[] = array_merge($existing, [$item]);
                 }
             }
-            $combinations = $newCombinations;
+            $result = $newResult;
         }
 
-        $variations = [];
-        foreach ($combinations as $i => $combo) {
-            $fields = array_map(fn($c) => [
-                'name'  => $c['field_name'],
-                'value' => $c['field_value'],
-            ], $combo);
-
-            // Lấy ảnh từ biến thể màu (nếu có)
-            $image = collect($combo)->first(fn($c) => !empty($c['image']));
-
-            $variation = [
-                'fields'             => $fields,
-                'retail_price'       => (float) ($product->sale_price ?: $product->price),
-                'inventory_quantity' => (int) $product->stock,
-                'sku'                => $baseSku . ($i > 0 ? '-' . ($i + 1) : ''),
-                'barcode'            => $product->barcode,
-            ];
-
-            if ($image) {
-                $variation['image'] = ['src' => $image['image']];
-            }
-
-            $variations[] = $variation;
-        }
-
-        return $variations;
+        return $result;
     }
 
-    protected function logSync($product, $action, $status, $payload, $response, $error = null)
+    protected function logSync($product, $action, $status, $payload, $response, $error = null): void
     {
         PancakeSyncLog::create([
-            'model_type' => Product::class,
-            'model_id' => $product->id,
-            'action' => $action,
-            'status' => $status,
-            'payload' => $payload,
-            'response' => $response,
+            'model_type'    => Product::class,
+            'model_id'      => $product->id,
+            'action'        => $action,
+            'status'        => $status,
+            'payload'       => $payload,
+            'response'      => $response,
             'error_message' => $error,
         ]);
     }
