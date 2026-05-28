@@ -5,11 +5,11 @@
 echo ">>> Đang cập nhật mã nguồn từ GitHub..."
 git pull origin main
 
-echo ">>> Dừng app/web/nginx-proxy containers (giữ MySQL chạy)"
-docker compose -f docker-compose.prod.yml stop app web nginx-proxy queue scheduler
+echo ">>> Dừng containers (giữ MySQL chạy)..."
+docker compose -f docker-compose.prod.yml stop app web queue scheduler
 
 echo ">>> Đang build và khởi động lại các container..."
-docker compose -f docker-compose.prod.yml up -d --build app web nginx-proxy queue scheduler
+docker compose -f docker-compose.prod.yml up -d --build app web queue scheduler
 
 echo ">>> Đang dọn dẹp các image cũ..."
 docker image prune -f
