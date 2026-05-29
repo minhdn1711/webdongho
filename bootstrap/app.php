@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('app:stock-check')->dailyAt('08:00');
     })
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust reverse proxy (NPM/nginx) để HTTPS hoạt động đúng
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
