@@ -14,12 +14,18 @@ class ProductController extends Controller
     public function show($slug)
     {
         $product = Product::with([
-            'categories',
-            'productImages',
-            'reviews' => fn($q) => $q->where('is_approved', true)->latest(),
-            'productAttributeValues.attribute',
+            'categories', 
+            'productImages', 
+            'productAttributeValues.attribute', 
             'productAttributeValues.attributeValue',
+            'reviews' => function($q) {
+                $q->where('is_approved', true)->latest();
+            }
         ])->where('slug', $slug)->firstOrFail();
+
+        if ($product->is_hidden) {
+            abort(404);
+        }
         
         $categoryIds = $product->categories->pluck('id')->toArray();
         if ($product->category_id) {
@@ -28,14 +34,17 @@ class ProductController extends Controller
         $categoryIds = array_unique($categoryIds);
 
         $relatedProducts = Product::where(function($query) use ($categoryIds) {
-                $query->whereIn('category_id', $categoryIds)
-                      ->orWhereHas('categories', function($q) use ($categoryIds) {
-                          $q->whereIn('categories.id', $categoryIds);
-                      });
-            })
-            ->where('id', '!=', $product->id)
-            ->limit(4)
-            ->get();
+            foreach ($categoryIds as $id) {
+                $query->orWhereHas('categories', function($q) use ($id) {
+                    $q->where('category_id', $id);
+                });
+            }
+        })
+        ->where('id', '!=', $product->id)
+        ->where('is_hidden', false)
+        ->inRandomOrder()
+        ->limit(4)
+        ->get();
 
         $isWishlisted = false;
         if (Auth::check()) {

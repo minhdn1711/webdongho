@@ -130,7 +130,7 @@ class ProductService
                 'product' => [
                     'name'               => $product->name,
                     'short_description'  => $product->short_description,
-                    'category_id'        => $categoryMapping ? $categoryMapping->pancake_category_id : null,
+                    'category_ids'       => $categoryMapping ? [(int) $categoryMapping->pancake_category_id] : [],
                     'sku'                => $sku,
                     'description'        => $product->description,
                     'price'              => $retailPrice,
@@ -144,7 +144,7 @@ class ProductService
             ];
 
             if ($mapping && $mapping->pancake_product_id) {
-                $response = $this->client->patch("/products/{$mapping->pancake_product_id}", $payload);
+                $response = $this->client->put("/products/{$mapping->pancake_product_id}", $payload);
                 $action   = 'update';
             } else {
                 $response = $this->client->post('/products', $payload);
@@ -203,8 +203,54 @@ class ProductService
         return $result;
     }
 
+    public function updateHideStatus(array $productIds, bool $isHide = true): bool
+    {
+        $token      = PancakeSetting::getValue('pancake_api_token');
+        $shopId     = PancakeSetting::getValue('pancake_shop_id');
+        $syncEnabled = PancakeSetting::getValue('pancake_sync_products', '1');
+
+        if (!$token || !$shopId || !($syncEnabled == '1' || $syncEnabled === true || $syncEnabled === 'true')) {
+            return false;
+        }
+
+        // Map local product IDs to Pancake product IDs
+        $pancakeIds = PancakeProductMapping::whereIn('product_id', $productIds)
+            ->whereNotNull('pancake_product_id')
+            ->pluck('pancake_product_id')
+            ->toArray();
+
+        if (empty($pancakeIds)) {
+            return false;
+        }
+
+        $payload = [
+            'is_hide' => $isHide,
+            'product_ids' => $pancakeIds
+        ];
+
+        try {
+            $response = $this->client->put('/products/update_hide', $payload);
+
+            if ($response->successful()) {
+                // Log success for the first product for reference
+                $this->logSync(Product::find($productIds[0]), 'update_hide', 'success', $payload, $response->json());
+                return true;
+            }
+
+            // Log failure
+            $this->logSync(Product::find($productIds[0]), 'update_hide', 'failed', $payload, $response->json(), $response->body());
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error("Pancake Product Hide Sync Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
     protected function logSync($product, $action, $status, $payload, $response, $error = null): void
     {
+        if (!$product) return;
+        
         PancakeSyncLog::create([
             'model_type'    => Product::class,
             'model_id'      => $product->id,

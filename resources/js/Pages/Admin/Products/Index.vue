@@ -24,6 +24,12 @@ const deleteProduct = () => {
         },
     });
 };
+
+const toggleHide = (product) => {
+    router.patch(route('admin.products.toggle-hide', product.id), {}, {
+        preserveScroll: true
+    });
+};
 </script>
 
 <template>
@@ -61,10 +67,15 @@ const deleteProduct = () => {
                         <td class="px-3 py-2">
                             <Link :href="route('admin.products.edit', product.id)" class="text-[13px] font-semibold text-[#2271b1] hover:text-[#135e96] hover:underline">
                                 {{ product.name }}
+                                <span v-if="product.is_hidden" class="ml-1 text-[#d63638] text-[11px] font-normal">(Đã ẩn)</span>
                             </Link>
                             <!-- Row Actions (WordPress style) -->
                             <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[#8c8f94]">
                                 <Link :href="route('admin.products.edit', product.id)" class="text-[#2271b1] hover:text-[#135e96]">Sửa</Link>
+                                <span>|</span>
+                                <button @click="toggleHide(product)" class="text-[#2271b1] hover:text-[#135e96]">
+                                    {{ product.is_hidden ? 'Hiện' : 'Ẩn' }}
+                                </button>
                                 <span>|</span>
                                 <button @click="confirmDelete(product)" class="text-[#b32d2e] hover:text-[#a02929]">Xóa</button>
                             </div>

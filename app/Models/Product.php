@@ -19,6 +19,7 @@ class Product extends Model
         'sale_price',
         'image',
         'is_featured',
+        'is_hidden',
         'stock',
         'sku',
         'barcode'
