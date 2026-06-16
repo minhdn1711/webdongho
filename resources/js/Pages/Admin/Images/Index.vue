@@ -1,11 +1,21 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
     images: Array
 });
+
+const IMAGES_PER_PAGE = 30; // 5 hàng × 6 cột
+const visibleCount = ref(IMAGES_PER_PAGE);
+
+const visibleImages = computed(() => props.images.slice(0, visibleCount.value));
+const hasMore = computed(() => visibleCount.value < props.images.length);
+
+const loadMore = () => {
+    visibleCount.value += IMAGES_PER_PAGE;
+};
 
 const uploadForm = useForm({
     images: []
@@ -83,7 +93,7 @@ const copyToClipboard = (url) => {
                     <h3 class="text-lg font-bold mb-6">Tất cả hình ảnh ({{ images.length }})</h3>
                     
                     <div v-if="images.length > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
-                        <div v-for="image in images" :key="image.path" class="group relative bg-gray-50 rounded-xl overflow-hidden border hover:border-blue-400 transition shadow-sm">
+                        <div v-for="image in visibleImages" :key="image.path" class="group relative bg-gray-50 rounded-xl overflow-hidden border hover:border-blue-400 transition shadow-sm">
                             <div class="aspect-square relative">
                                 <img :src="image.url" class="w-full h-full object-cover" />
                                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
@@ -101,7 +111,17 @@ const copyToClipboard = (url) => {
                         </div>
                     </div>
 
-                    <div v-else class="text-center py-20 bg-gray-50 rounded-xl border-2 border-dashed">
+                    <!-- Nút Xem thêm -->
+                    <div v-if="hasMore" class="mt-8 flex justify-center">
+                        <button
+                            @click="loadMore"
+                            class="px-8 py-3 bg-white border-2 border-blue-500 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition"
+                        >
+                            Xem thêm ({{ images.length - visibleCount }} ảnh còn lại)
+                        </button>
+                    </div>
+
+                    <div v-if="images.length === 0" class="text-center py-20 bg-gray-50 rounded-xl border-2 border-dashed">
                         <p class="text-gray-400">Thư viện ảnh trống. Hãy tải lên ảnh đầu tiên của bạn!</p>
                     </div>
                 </div>
