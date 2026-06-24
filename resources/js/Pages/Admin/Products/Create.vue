@@ -2,7 +2,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import MediaLibrary from '@/Components/MediaLibrary.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import RichEditor from '@/Components/RichEditor.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
@@ -12,45 +12,86 @@ import axios from 'axios';
 const props = defineProps({
     categories: Array,
     attributes: Array,
+    products: { type: Array, default: () => [] },
+    sourceProduct: { type: Object, default: null },
 });
 
-const imagePreview = ref(null);
+const imagePreview = ref(props.sourceProduct?.image || null);
 const showMediaLibrary = ref(false);
 const showGalleryLibrary = ref(false);
 const showAttributeImageLibrary = ref(false);
 const activeAttributeForImage = ref(null);
 
-// Gallery management
-const galleryItems = ref([]); // { url: string, file: File|null, preview: string }
+// Gallery management — pre-fill from sourceProduct if duplicating
+const galleryItems = ref(
+    (props.sourceProduct?.product_images || []).map(img => ({
+        id: null,
+        url: img.image_url,
+        file: null,
+        preview: img.image_url,
+    }))
+);
 const driveUrl = ref('');
 const driveImages = ref([]);
 const selectedDriveImages = ref([]);
 const loadingDrive = ref(false);
 
+// Build product_attributes initial value from sourceProduct if duplicating
+function buildInitialAttributes() {
+    const base = {};
+    if (props.attributes) {
+        props.attributes.forEach(attr => { base[attr.id] = []; });
+    }
+    if (props.sourceProduct?.product_attribute_values) {
+        props.sourceProduct.product_attribute_values.forEach(pav => {
+            if (base[pav.attribute_id] !== undefined) {
+                base[pav.attribute_id].push(pav.attribute_value_id);
+            }
+        });
+    }
+    return base;
+}
+
+function buildInitialAttributeImages() {
+    const base = {};
+    if (props.sourceProduct?.product_attribute_values) {
+        props.sourceProduct.product_attribute_values.forEach(pav => {
+            if (pav.image_url) {
+                base[pav.attribute_value_id] = pav.image_url;
+            }
+        });
+    }
+    return base;
+}
+
+const src = props.sourceProduct;
 const form = useForm({
-    category_ids: [],
-    name: '',
-    short_description: '',
-    description: '',
-    price: 0,
-    sale_price: null,
-    image: '',
-    image_file: null,
-    stock: 0,
-    is_featured: false,
-    sku: '',
-    barcode: '',
-    product_attributes: {},
-    attribute_images: {},
+    category_ids:        src?.category_ids ?? [],
+    name:                src?.name ?? '',
+    short_description:   src?.short_description ?? '',
+    description:         src?.description ?? '',
+    price:               src?.price ?? 0,
+    sale_price:          src?.sale_price ?? null,
+    image:               src?.image ?? '',
+    image_file:          null,
+    stock:               0,
+    is_featured:         src?.is_featured ?? false,
+    sku:                 src?.sku ?? '',
+    barcode:             src?.barcode ?? '',
+    product_attributes:  buildInitialAttributes(),
+    attribute_images:    buildInitialAttributeImages(),
+    related_product_ids: src?.related_product_ids ?? [],
 });
 
 const pancakeConfigured = usePage().props.pancake_configured;
 const showPancakeModal = ref(false);
 
 onMounted(() => {
-    if (props.attributes) {
+    if (!props.sourceProduct && props.attributes) {
         props.attributes.forEach(attr => {
-            form.product_attributes[attr.id] = [];
+            if (!form.product_attributes[attr.id]) {
+                form.product_attributes[attr.id] = [];
+            }
         });
     }
     if (!pancakeConfigured) {
@@ -58,9 +99,7 @@ onMounted(() => {
     }
 });
 
-const closePancakeModal = () => {
-    showPancakeModal.value = false;
-};
+const closePancakeModal = () => { showPancakeModal.value = false; };
 
 // Main image handlers
 const handleImageSelect = (image) => {
@@ -98,7 +137,7 @@ const handleAttributeImageSelect = (image) => {
 const handleGalleryLibrarySelect = (images) => {
     for (const img of images) {
         if (!galleryItems.value.some(i => i.url === img.url)) {
-            galleryItems.value.push({ url: img.url, file: null, preview: img.url });
+            galleryItems.value.push({ id: null, url: img.url, file: null, preview: img.url });
         }
     }
 };
@@ -106,7 +145,7 @@ const handleGalleryLibrarySelect = (images) => {
 const handleGalleryUpload = (e) => {
     const files = Array.from(e.target.files);
     for (const file of files) {
-        galleryItems.value.push({ url: '', file, preview: URL.createObjectURL(file) });
+        galleryItems.value.push({ id: null, url: '', file, preview: URL.createObjectURL(file) });
     }
     e.target.value = '';
 };
@@ -158,13 +197,34 @@ const selectAllDriveImages = () => {
 const addSelectedDriveImages = () => {
     for (const img of selectedDriveImages.value) {
         if (!galleryItems.value.some(i => i.url === img.url)) {
-            galleryItems.value.push({ url: img.url, file: null, preview: img.url });
+            galleryItems.value.push({ id: null, url: img.url, file: null, preview: img.url });
         }
     }
     driveImages.value = [];
     selectedDriveImages.value = [];
     driveUrl.value = '';
 };
+
+// Related products
+const relatedSearch = ref('');
+const filteredProducts = computed(() => {
+    const q = relatedSearch.value.toLowerCase().trim();
+    if (!q) return props.products || [];
+    return (props.products || []).filter(p => p.name.toLowerCase().includes(q));
+});
+
+const toggleRelated = (id) => {
+    const idx = form.related_product_ids.indexOf(id);
+    if (idx >= 0) {
+        form.related_product_ids.splice(idx, 1);
+    } else {
+        form.related_product_ids.push(id);
+    }
+};
+
+const selectedRelatedProducts = computed(() =>
+    (props.products || []).filter(p => form.related_product_ids.includes(p.id))
+);
 
 const submit = () => {
     form.transform(data => ({
@@ -178,12 +238,19 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Thêm sản phẩm mới" />
+    <Head :title="sourceProduct ? 'Nhân bản sản phẩm' : 'Thêm sản phẩm mới'" />
 
     <AdminLayout>
         <template #header>
-            <h1 class="text-[23px] font-normal text-[#1d2327] leading-tight">Thêm sản phẩm mới</h1>
+            <h1 class="text-[23px] font-normal text-[#1d2327] leading-tight">
+                {{ sourceProduct ? 'Nhân bản sản phẩm' : 'Thêm sản phẩm mới' }}
+            </h1>
         </template>
+
+        <!-- Notice banner for duplicate mode -->
+        <div v-if="sourceProduct" class="mb-4 px-4 py-3 bg-[#fcf9e8] border border-[#dba617] rounded text-[13px] text-[#50575e]">
+            Đang tạo bản sao. Vui lòng kiểm tra và điều chỉnh thông tin trước khi lưu.
+        </div>
 
         <form @submit.prevent="submit">
             <div class="flex flex-col lg:flex-row gap-5">
@@ -359,6 +426,39 @@ const submit = () => {
                         </div>
                     </div>
 
+                    <!-- Sản phẩm liên quan -->
+                    <div class="bg-white border border-[#c3c4c7] shadow-sm">
+                        <div class="bg-[#f0f0f1] border-b border-[#c3c4c7] px-3 py-2 flex items-center justify-between">
+                            <span class="text-[13px] font-semibold text-[#1d2327]">Sản phẩm liên quan</span>
+                            <span v-if="form.related_product_ids.length" class="text-[11px] bg-[#2271b1] text-white px-1.5 py-0.5 rounded-full">{{ form.related_product_ids.length }}</span>
+                        </div>
+                        <div class="p-3">
+                            <!-- Selected chips -->
+                            <div v-if="selectedRelatedProducts.length > 0" class="flex flex-wrap gap-1 mb-2">
+                                <span v-for="p in selectedRelatedProducts" :key="p.id"
+                                    class="inline-flex items-center gap-1 bg-[#e8f0fb] text-[#2271b1] text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ p.name.length > 20 ? p.name.slice(0, 20) + '…' : p.name }}
+                                    <button type="button" @click="toggleRelated(p.id)" class="text-[#2271b1] hover:text-[#b32d2e] leading-none">&times;</button>
+                                </span>
+                            </div>
+                            <!-- Search -->
+                            <input v-model="relatedSearch" type="text" placeholder="Tìm sản phẩm..."
+                                class="w-full border-[#8c8f94] rounded text-[12px] py-1 mb-2 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" />
+                            <!-- List -->
+                            <div class="max-h-[180px] overflow-y-auto border border-[#dcdcde] rounded">
+                                <div v-if="filteredProducts.length === 0" class="text-[11px] text-[#8c8f94] text-center py-3">Không tìm thấy</div>
+                                <div v-for="p in filteredProducts" :key="p.id"
+                                    class="flex items-center px-2 py-1.5 hover:bg-[#f6f7f7] cursor-pointer border-b border-[#f0f0f1] last:border-0"
+                                    @click="toggleRelated(p.id)">
+                                    <input type="checkbox" :checked="form.related_product_ids.includes(p.id)"
+                                        class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-3.5 w-3.5 pointer-events-none" />
+                                    <span class="ml-2 text-[12px] text-[#50575e]">{{ p.name }}</span>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-[#8c8f94] mt-1.5">Nếu không chọn, hệ thống tự hiển thị sản phẩm cùng danh mục.</p>
+                        </div>
+                    </div>
+
                     <!-- Ảnh đại diện -->
                     <div class="bg-white border border-[#c3c4c7] shadow-sm">
                         <div class="bg-[#f0f0f1] border-b border-[#c3c4c7] px-3 py-2">
@@ -473,7 +573,6 @@ const submit = () => {
         <MediaLibrary :show="showMediaLibrary" @close="showMediaLibrary = false" @select="handleImageSelect" />
         <MediaLibrary :show="showGalleryLibrary" title="Chọn ảnh cho thư viện sản phẩm" :multiSelect="true"
             @close="showGalleryLibrary = false" @select="handleGalleryLibrarySelect" />
-            
         <MediaLibrary :show="showAttributeImageLibrary" @close="showAttributeImageLibrary = false" @select="handleAttributeImageSelect" />
 
         <Modal :show="showPancakeModal" @close="closePancakeModal">

@@ -66,6 +66,8 @@ const deleteProduct = () => {
                             <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[#8c8f94]">
                                 <Link :href="route('admin.products.edit', product.id)" class="text-[#2271b1] hover:text-[#135e96]">Sửa</Link>
                                 <span>|</span>
+                                <Link :href="route('admin.products.duplicate', product.id)" class="text-[#2271b1] hover:text-[#135e96]">Nhân bản</Link>
+                                <span>|</span>
                                 <button @click="confirmDelete(product)" class="text-[#b32d2e] hover:text-[#a02929]">Xóa</button>
                             </div>
                         </td>

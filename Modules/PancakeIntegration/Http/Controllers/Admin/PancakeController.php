@@ -10,6 +10,7 @@ use Modules\PancakeIntegration\Models\PancakeSyncLog;
 use Modules\PancakeIntegration\Models\PancakeWebhookLog;
 use Modules\PancakeIntegration\Services\ProductService;
 use Modules\PancakeIntegration\Services\OrderService;
+use Modules\PancakeIntegration\Services\WarehouseService;
 use App\Models\Product;
 use App\Models\Order;
 
@@ -79,7 +80,7 @@ class PancakeController extends Controller
     public function retrySync($id, ProductService $productService, OrderService $orderService)
     {
         $log = PancakeSyncLog::findOrFail($id);
-        
+
         if ($log->model_type === Product::class) {
             $product = Product::find($log->model_id);
             if ($product) $productService->syncProduct($product);
@@ -89,5 +90,90 @@ class PancakeController extends Controller
         }
 
         return redirect()->back()->with('success', 'Đã thử lại đồng bộ.');
+    }
+
+    // ── Ẩn / Hiện sản phẩm ───────────────────────────────────────────────
+
+    public function hideProduct($id, ProductService $productService)
+    {
+        $product = Product::findOrFail($id);
+        $ok = $productService->hideProduct($product);
+        return redirect()->back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? "Đã ẩn sản phẩm \"{$product->name}\" trên Pancake." : 'Không ẩn được sản phẩm. Kiểm tra sản phẩm đã được đồng bộ chưa.'
+        );
+    }
+
+    public function showProduct($id, ProductService $productService)
+    {
+        $product = Product::findOrFail($id);
+        $ok = $productService->showProduct($product);
+        return redirect()->back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? "Đã hiện sản phẩm \"{$product->name}\" trên Pancake." : 'Không hiện được sản phẩm.'
+        );
+    }
+
+    public function syncStock($id, ProductService $productService)
+    {
+        $product = Product::findOrFail($id);
+        $ok = $productService->updateStock($product);
+        return redirect()->back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? "Đã cập nhật tồn kho sản phẩm \"{$product->name}\" lên Pancake." : 'Không cập nhật được tồn kho. Kiểm tra warehouse ID trong cấu hình.'
+        );
+    }
+
+    // ── Kho (Warehouse) ──────────────────────────────────────────────────
+
+    public function warehouses(WarehouseService $warehouseService)
+    {
+        $warehouses = $warehouseService->listWarehouses();
+        return Inertia::render('Admin/Pancake/Warehouses', [
+            'warehouses'         => $warehouses,
+            'current_warehouse'  => PancakeSetting::getValue('pancake_warehouse_id', ''),
+        ]);
+    }
+
+    public function createWarehouse(Request $request, WarehouseService $warehouseService)
+    {
+        $data = $request->validate([
+            'name'         => 'required|string|max:255',
+            'address'      => 'nullable|string|max:500',
+            'phone_number' => 'nullable|string|max:20',
+        ]);
+
+        $result = $warehouseService->createWarehouse($data);
+
+        if ($result && isset($result['id'])) {
+            PancakeSetting::setValue('pancake_warehouse_id', $result['id']);
+            return redirect()->back()->with('success', "Tạo kho \"{$data['name']}\" thành công. Warehouse ID đã được cập nhật vào cấu hình.");
+        }
+
+        return redirect()->back()->with('error', 'Tạo kho thất bại. Kiểm tra lại API token và shop ID.');
+    }
+
+    public function updateWarehouse(Request $request, WarehouseService $warehouseService)
+    {
+        $data = $request->validate([
+            'warehouse_id' => 'required|string',
+            'name'         => 'required|string|max:255',
+            'address'      => 'nullable|string|max:500',
+            'phone_number' => 'nullable|string|max:20',
+        ]);
+
+        $ok = $warehouseService->updateWarehouse($data['warehouse_id'], $data);
+
+        return redirect()->back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? "Đã cập nhật kho thành công." : 'Cập nhật kho thất bại.'
+        );
+    }
+
+    public function setDefaultWarehouse(Request $request)
+    {
+        $request->validate(['warehouse_id' => 'required|string']);
+        PancakeSetting::setValue('pancake_warehouse_id', $request->warehouse_id);
+        return redirect()->back()->with('success', 'Đã đặt kho mặc định.');
     }
 }

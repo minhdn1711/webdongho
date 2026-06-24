@@ -2,7 +2,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import MediaLibrary from '@/Components/MediaLibrary.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import RichEditor from '@/Components/RichEditor.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
@@ -13,6 +13,7 @@ const props = defineProps({
     product: Object,
     categories: Array,
     attributes: Array,
+    products: { type: Array, default: () => [] },
 });
 
 const imagePreview = ref(null);
@@ -65,6 +66,7 @@ const form = useForm({
             .filter(pav => pav.image_url)
             .map(pav => [pav.attribute_value_id, pav.image_url])
     ),
+    related_product_ids: (props.product.related_products || []).map(p => p.id),
 });
 
 const pancakeConfigured = usePage().props.pancake_configured;
@@ -77,6 +79,25 @@ onMounted(() => {
 });
 
 const closePancakeModal = () => { showPancakeModal.value = false; };
+
+// Related products
+const relatedSearch = ref('');
+const filteredProducts = computed(() => {
+    const q = relatedSearch.value.toLowerCase().trim();
+    if (!q) return props.products || [];
+    return (props.products || []).filter(p => p.name.toLowerCase().includes(q));
+});
+const toggleRelated = (id) => {
+    const idx = form.related_product_ids.indexOf(id);
+    if (idx >= 0) {
+        form.related_product_ids.splice(idx, 1);
+    } else {
+        form.related_product_ids.push(id);
+    }
+};
+const selectedRelatedProducts = computed(() =>
+    (props.products || []).filter(p => form.related_product_ids.includes(p.id))
+);
 
 // Main image handlers
 const handleImageSelect = (image) => {
@@ -387,6 +408,39 @@ const submit = () => {
                                 </div>
                             </div>
                             <div v-if="form.errors.category_ids" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.category_ids }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Sản phẩm liên quan -->
+                    <div class="bg-white border border-[#c3c4c7] shadow-sm">
+                        <div class="bg-[#f0f0f1] border-b border-[#c3c4c7] px-3 py-2 flex items-center justify-between">
+                            <span class="text-[13px] font-semibold text-[#1d2327]">Sản phẩm liên quan</span>
+                            <span v-if="form.related_product_ids.length" class="text-[11px] bg-[#2271b1] text-white px-1.5 py-0.5 rounded-full">{{ form.related_product_ids.length }}</span>
+                        </div>
+                        <div class="p-3">
+                            <!-- Selected chips -->
+                            <div v-if="selectedRelatedProducts.length > 0" class="flex flex-wrap gap-1 mb-2">
+                                <span v-for="p in selectedRelatedProducts" :key="p.id"
+                                    class="inline-flex items-center gap-1 bg-[#e8f0fb] text-[#2271b1] text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ p.name.length > 20 ? p.name.slice(0, 20) + '…' : p.name }}
+                                    <button type="button" @click="toggleRelated(p.id)" class="text-[#2271b1] hover:text-[#b32d2e] leading-none">&times;</button>
+                                </span>
+                            </div>
+                            <!-- Search -->
+                            <input v-model="relatedSearch" type="text" placeholder="Tìm sản phẩm..."
+                                class="w-full border-[#8c8f94] rounded text-[12px] py-1 mb-2 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" />
+                            <!-- List -->
+                            <div class="max-h-[180px] overflow-y-auto border border-[#dcdcde] rounded">
+                                <div v-if="filteredProducts.length === 0" class="text-[11px] text-[#8c8f94] text-center py-3">Không tìm thấy</div>
+                                <div v-for="p in filteredProducts" :key="p.id"
+                                    class="flex items-center px-2 py-1.5 hover:bg-[#f6f7f7] cursor-pointer border-b border-[#f0f0f1] last:border-0"
+                                    @click="toggleRelated(p.id)">
+                                    <input type="checkbox" :checked="form.related_product_ids.includes(p.id)"
+                                        class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-3.5 w-3.5 pointer-events-none" />
+                                    <span class="ml-2 text-[12px] text-[#50575e]">{{ p.name }}</span>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-[#8c8f94] mt-1.5">Nếu không chọn, hệ thống tự hiển thị sản phẩm cùng danh mục.</p>
                         </div>
                     </div>
 

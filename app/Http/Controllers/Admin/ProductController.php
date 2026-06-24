@@ -30,31 +30,60 @@ class ProductController extends Controller
         return Inertia::render('Admin/Products/Create', [
             'categories' => Category::all(),
             'attributes' => Attribute::with('attributeValues')->get(),
+            'products'   => Product::select('id', 'name')->latest()->get(),
+        ]);
+    }
+
+    public function duplicate(Product $product)
+    {
+        $product->load(['categories', 'productImages', 'productAttributeValues', 'relatedProducts']);
+
+        return Inertia::render('Admin/Products/Create', [
+            'categories'    => Category::all(),
+            'attributes'    => Attribute::with('attributeValues')->get(),
+            'products'      => Product::select('id', 'name')->latest()->get(),
+            'sourceProduct' => [
+                'name'                     => $product->name . ' (Bản sao)',
+                'short_description'        => $product->short_description,
+                'description'              => $product->description,
+                'price'                    => $product->price,
+                'sale_price'               => $product->sale_price,
+                'image'                    => $product->image,
+                'is_featured'              => $product->is_featured,
+                'sku'                      => $product->sku ? $product->sku . '-copy' : '',
+                'barcode'                  => '',
+                'category_ids'             => $product->categories->pluck('id')->toArray(),
+                'product_attribute_values' => $product->productAttributeValues->toArray(),
+                'product_images'           => $product->productImages->toArray(),
+                'related_product_ids'      => $product->relatedProducts->pluck('id')->toArray(),
+            ],
         ]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'category_ids'      => 'required|array',
-            'category_ids.*'    => 'exists:categories,id',
-            'name'              => 'required|string|max:255',
-            'short_description' => 'nullable|string',
-            'description'       => 'nullable|string',
-            'price'             => 'required|numeric|min:0',
-            'sale_price'        => 'nullable|numeric|min:0',
-            'image'             => 'nullable',
-            'image_file'        => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'stock'             => 'required|integer|min:0',
-            'is_featured'       => 'boolean',
-            'sku'               => 'nullable|string|max:255',
-            'barcode'           => 'nullable|string|max:255',
-            'gallery_files.*'   => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'gallery_urls'      => 'nullable|array',
-            'gallery_urls.*'    => 'nullable|string',
+            'category_ids'          => 'required|array',
+            'category_ids.*'        => 'exists:categories,id',
+            'name'                  => 'required|string|max:255',
+            'short_description'     => 'nullable|string',
+            'description'           => 'nullable|string',
+            'price'                 => 'required|numeric|min:0',
+            'sale_price'            => 'nullable|numeric|min:0',
+            'image'                 => 'nullable',
+            'image_file'            => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'stock'                 => 'required|integer|min:0',
+            'is_featured'           => 'boolean',
+            'sku'                   => 'nullable|string|max:255',
+            'barcode'               => 'nullable|string|max:255',
+            'gallery_files.*'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'gallery_urls'          => 'nullable|array',
+            'gallery_urls.*'        => 'nullable|string',
+            'related_product_ids'   => 'nullable|array',
+            'related_product_ids.*' => 'exists:products,id',
         ]);
 
-        $data = $request->except(['image_file', 'category_ids', 'gallery_files', 'gallery_urls', 'delete_image_ids']);
+        $data = $request->except(['image_file', 'category_ids', 'gallery_files', 'gallery_urls', 'delete_image_ids', 'related_product_ids']);
         $data['slug'] = Str::slug($request->name);
         $data['category_id'] = $request->category_ids[0] ?? null;
 
@@ -65,6 +94,7 @@ class ProductController extends Controller
 
         $product = Product::create($data);
         $product->categories()->sync($request->category_ids);
+        $product->relatedProducts()->sync($request->related_product_ids ?? []);
 
         // Save product attributes
         if ($request->has('product_attributes')) {
@@ -81,36 +111,39 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         return Inertia::render('Admin/Products/Edit', [
-            'product'    => $product->load(['categories', 'productImages', 'productAttributeValues']),
+            'product'    => $product->load(['categories', 'productImages', 'productAttributeValues', 'relatedProducts']),
             'categories' => Category::all(),
             'attributes' => Attribute::with('attributeValues')->get(),
+            'products'   => Product::select('id', 'name')->where('id', '!=', $product->id)->latest()->get(),
         ]);
     }
 
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'category_ids'      => 'required|array',
-            'category_ids.*'    => 'exists:categories,id',
-            'name'              => 'required|string|max:255',
-            'short_description' => 'nullable|string',
-            'description'       => 'nullable|string',
-            'price'             => 'required|numeric|min:0',
-            'sale_price'        => 'nullable|numeric|min:0',
-            'image'             => 'nullable',
-            'image_file'        => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'stock'             => 'required|integer|min:0',
-            'is_featured'       => 'boolean',
-            'sku'               => 'nullable|string|max:255',
-            'barcode'           => 'nullable|string|max:255',
-            'gallery_files.*'   => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'gallery_urls'      => 'nullable|array',
-            'gallery_urls.*'    => 'nullable|string',
-            'delete_image_ids'  => 'nullable|array',
-            'delete_image_ids.*'=> 'integer',
+            'category_ids'          => 'required|array',
+            'category_ids.*'        => 'exists:categories,id',
+            'name'                  => 'required|string|max:255',
+            'short_description'     => 'nullable|string',
+            'description'           => 'nullable|string',
+            'price'                 => 'required|numeric|min:0',
+            'sale_price'            => 'nullable|numeric|min:0',
+            'image'                 => 'nullable',
+            'image_file'            => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'stock'                 => 'required|integer|min:0',
+            'is_featured'           => 'boolean',
+            'sku'                   => 'nullable|string|max:255',
+            'barcode'               => 'nullable|string|max:255',
+            'gallery_files.*'       => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'gallery_urls'          => 'nullable|array',
+            'gallery_urls.*'        => 'nullable|string',
+            'delete_image_ids'      => 'nullable|array',
+            'delete_image_ids.*'    => 'integer',
+            'related_product_ids'   => 'nullable|array',
+            'related_product_ids.*' => 'exists:products,id',
         ]);
 
-        $data = $request->except(['image_file', 'category_ids', 'gallery_files', 'gallery_urls', 'delete_image_ids']);
+        $data = $request->except(['image_file', 'category_ids', 'gallery_files', 'gallery_urls', 'delete_image_ids', 'related_product_ids']);
         $data['slug'] = Str::slug($request->name);
         $data['category_id'] = $request->category_ids[0] ?? null;
 
@@ -125,6 +158,7 @@ class ProductController extends Controller
 
         $product->update($data);
         $product->categories()->sync($request->category_ids);
+        $product->relatedProducts()->sync($request->related_product_ids ?? []);
 
         // Save product attributes
         if ($request->has('product_attributes')) {

@@ -119,6 +119,21 @@ class ProductService
                 ];
             }
 
+            $warehouseId = \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_warehouse_id');
+
+            // Gắn tồn kho vào từng variation nếu có warehouse_id
+            if ($warehouseId) {
+                $totalStock = (int) $product->stock;
+                $variationCount = count($variations);
+                foreach ($variations as &$v) {
+                    $v['variations_warehouses'] = [[
+                        'warehouse_id'    => $warehouseId,
+                        'remain_quantity' => $variationCount > 1 ? 0 : $totalStock,
+                    ]];
+                }
+                unset($v);
+            }
+
             $payload = [
                 'product' => [
                     'name'               => $product->name,
@@ -133,8 +148,57 @@ class ProductService
             ];
 
             if ($mapping && $mapping->pancake_product_id) {
-                $response = $this->client->patch("/products/{$mapping->pancake_product_id}", $payload);
+                // Lấy variation IDs từ Pancake để update ảnh đúng variation
+                $pancakeGet  = $this->client->get("/products/{$mapping->pancake_product_id}");
+                $pancakeVars = $pancakeGet->successful()
+                    ? $pancakeGet->json('data.variations', [])
+                    : [];
+
+                // Map: display_id (= custom_id ta gửi lúc tạo) → Pancake variation UUID
+                $pancakeVarByCustomId = [];
+                foreach ($pancakeVars as $pv) {
+                    $key = $pv['display_id'] ?? null;
+                    if ($key) {
+                        $pancakeVarByCustomId[$key] = $pv['id'];
+                    }
+                }
+
+                // Build variation updates: chỉ gửi id + images cho đúng variation
+                $varImageUpdates = [];
+                foreach ($payload['product']['variations'] as $localVar) {
+                    $localCustomId = $localVar['custom_id'] ?? null;
+                    $pancakeVarId  = $localCustomId ? ($pancakeVarByCustomId[$localCustomId] ?? null) : null;
+                    if ($pancakeVarId) {
+                        $varImageUpdates[] = [
+                            'id'     => $pancakeVarId,
+                            'images' => $localVar['images'] ?? [],
+                        ];
+                    }
+                }
+
+                $updatePayload = [
+                    'product' => [
+                        'name'         => $payload['product']['name'],
+                        'note_product' => $payload['product']['note_product'],
+                        'category_ids' => $payload['product']['category_ids'],
+                        'description'  => $payload['product']['description'],
+                        'is_published' => true,
+                    ],
+                ];
+
+                if (!empty($varImageUpdates)) {
+                    $updatePayload['product']['variations'] = $varImageUpdates;
+                }
+
+                $response = $this->client->patch("/products/{$mapping->pancake_product_id}", $updatePayload);
                 $action   = 'update';
+
+                // Sản phẩm bị xóa trên POS → tạo lại từ đầu
+                if ($response->status() === 404) {
+                    $mapping->delete();
+                    $response = $this->client->post('/products', $payload);
+                    $action   = 'create';
+                }
             } else {
                 $response = $this->client->post('/products', $payload);
                 $action   = 'create';
@@ -166,6 +230,79 @@ class ProductService
             $this->logSync($product, 'sync', 'failed', $payload ?? [], null, $e->getMessage());
             return false;
         }
+    }
+
+    public function hideProduct(Product $product): bool
+    {
+        return $this->setPublished($product, false);
+    }
+
+    public function showProduct(Product $product): bool
+    {
+        return $this->setPublished($product, true);
+    }
+
+    protected function setPublished(Product $product, bool $published): bool
+    {
+        $mapping = PancakeProductMapping::where('product_id', $product->id)
+            ->whereNotNull('pancake_product_id')
+            ->first();
+
+        if (!$mapping) {
+            return false;
+        }
+
+        $response = $this->client->patch("/products/{$mapping->pancake_product_id}", [
+            'product' => ['is_published' => $published],
+        ]);
+
+        return $response->successful();
+    }
+
+    public function updateStock(Product $product): bool
+    {
+        $mapping = PancakeProductMapping::where('product_id', $product->id)
+            ->whereNotNull('pancake_product_id')
+            ->first();
+
+        if (!$mapping) {
+            return false;
+        }
+
+        $warehouseId = \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_warehouse_id');
+        if (!$warehouseId) {
+            return false;
+        }
+
+        // Lấy danh sách variation IDs từ Pancake để update đúng variation
+        $getResponse = $this->client->get("/products/{$mapping->pancake_product_id}");
+        if (!$getResponse->successful()) {
+            return false;
+        }
+
+        $pancakeVariations = $getResponse->json('data.variations', []);
+        if (empty($pancakeVariations)) {
+            return false;
+        }
+
+        $stock      = (int) $product->stock;
+        $countVars  = count($pancakeVariations);
+
+        $variationsPayload = array_map(function ($v) use ($warehouseId, $stock, $countVars) {
+            return [
+                'id'                  => $v['id'],
+                'variations_warehouses' => [[
+                    'warehouse_id'    => $warehouseId,
+                    'remain_quantity' => $countVars > 1 ? 0 : $stock,
+                ]],
+            ];
+        }, $pancakeVariations);
+
+        $response = $this->client->patch("/products/{$mapping->pancake_product_id}", [
+            'product' => ['variations' => $variationsPayload],
+        ]);
+
+        return $response->successful();
     }
 
     protected function cartesianProduct(array $groups): array

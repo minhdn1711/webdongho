@@ -60,4 +60,9 @@ class Product extends Model
                     ->withPivot('attribute_id');
     }
 
+    public function relatedProducts()
+    {
+        return $this->belongsToMany(Product::class, 'product_related', 'product_id', 'related_product_id');
+    }
+
 }

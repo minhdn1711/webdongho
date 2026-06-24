@@ -65,6 +65,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Quản lý sản phẩm
     Route::post('/products/fetch-drive-images', [App\Http\Controllers\Admin\ProductController::class, 'fetchDriveImages'])->name('admin.products.fetch-drive');
+    Route::get('/products/{product}/duplicate', [App\Http\Controllers\Admin\ProductController::class, 'duplicate'])->name('admin.products.duplicate');
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class)->names('admin.products');
 
     // Quản lý danh mục
@@ -114,6 +115,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/webhook-logs', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'webhookLogs'])->name('admin.pancake.webhook-logs');
         Route::post('/manual-sync/{type}/{id}', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'manualSync'])->name('admin.pancake.manual-sync');
         Route::post('/retry-sync/{id}', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'retrySync'])->name('admin.pancake.retry-sync');
+
+        // Ẩn/hiện & tồn kho sản phẩm
+        Route::post('/products/{id}/hide', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'hideProduct'])->name('admin.pancake.product.hide');
+        Route::post('/products/{id}/show', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'showProduct'])->name('admin.pancake.product.show');
+        Route::post('/products/{id}/sync-stock', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'syncStock'])->name('admin.pancake.product.sync-stock');
+
+        // Kho (Warehouse)
+        Route::get('/warehouses', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'warehouses'])->name('admin.pancake.warehouses');
+        Route::post('/warehouses', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'createWarehouse'])->name('admin.pancake.warehouses.create');
+        Route::put('/warehouses', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'updateWarehouse'])->name('admin.pancake.warehouses.update');
+        Route::post('/warehouses/set-default', [\Modules\PancakeIntegration\Http\Controllers\Admin\PancakeController::class, 'setDefaultWarehouse'])->name('admin.pancake.warehouses.set-default');
     });
 });
 

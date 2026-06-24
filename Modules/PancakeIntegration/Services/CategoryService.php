@@ -46,7 +46,7 @@ class CategoryService
 
             if ($response->successful()) {
                 $data = $response->json();
-                $pancakeCategoryId = $data['id'] ?? $data['category']['id'] ?? null;
+                $pancakeCategoryId = $data['data']['id'] ?? $data['id'] ?? null;
 
                 if ($pancakeCategoryId) {
                     PancakeCategoryMapping::updateOrCreate(
