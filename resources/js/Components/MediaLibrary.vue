@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -102,8 +102,11 @@ const confirmSelection = () => {
     }
 };
 
-onMounted(() => {
-    fetchImages();
+// Chỉ fetch lần đầu khi modal được mở, sau đó dùng cache
+watch(() => props.show, (isOpen) => {
+    if (isOpen && images.value.length === 0 && !loading.value) {
+        fetchImages();
+    }
 });
 
 const filteredImages = computed(() => {

@@ -182,8 +182,34 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        // Đồng bộ ẩn sản phẩm sang Pancake POS trước khi xóa/ẩn
+        if (class_exists(\Modules\PancakeIntegration\Services\ProductService::class)) {
+            try {
+                app(\Modules\PancakeIntegration\Services\ProductService::class)->updateHideStatus([$product->id], true);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to hide product on POS: " . $e->getMessage());
+            }
+        }
+
         $product->delete();
-        return redirect()->back()->with('success', 'Sản phẩm đã được xóa thành công!');
+        return redirect()->back()->with('success', 'Sản phẩm đã được xóa (và ẩn trên POS) thành công!');
+    }
+
+    public function toggleHide(Product $product)
+    {
+        $product->is_hidden = !$product->is_hidden;
+        $product->save();
+
+        if (class_exists(\Modules\PancakeIntegration\Services\ProductService::class)) {
+            try {
+                app(\Modules\PancakeIntegration\Services\ProductService::class)->updateHideStatus([$product->id], $product->is_hidden);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to sync hide status to POS: " . $e->getMessage());
+            }
+        }
+
+        $msg = $product->is_hidden ? 'Đã ẩn sản phẩm (và đồng bộ POS)!' : 'Đã hiện sản phẩm (và đồng bộ POS)!';
+        return redirect()->back()->with('success', $msg);
     }
 
     public function fetchDriveImages(Request $request)

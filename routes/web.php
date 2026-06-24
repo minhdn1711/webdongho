@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -14,7 +14,7 @@ Route::get('/', function () {
             return $banner;
         }),
         'categories' => \App\Models\Category::whereNull('parent_id')->get(),
-        'products' => \App\Models\Product::with('categories')->where('is_featured', true)->get(),
+        'products' => \App\Models\Product::with('categories')->where('is_featured', true)->where('is_hidden', false)->get(),
         'latest_posts' => \App\Models\Post::where('is_published', true)->latest()->limit(3)->get(),
     ]);
 });
@@ -66,6 +66,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Quản lý sản phẩm
     Route::post('/products/fetch-drive-images', [App\Http\Controllers\Admin\ProductController::class, 'fetchDriveImages'])->name('admin.products.fetch-drive');
     Route::get('/products/{product}/duplicate', [App\Http\Controllers\Admin\ProductController::class, 'duplicate'])->name('admin.products.duplicate');
+    Route::patch('/products/{product}/toggle-hide', [App\Http\Controllers\Admin\ProductController::class, 'toggleHide'])->name('admin.products.toggle-hide');
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class)->names('admin.products');
 
     // Quản lý danh mục

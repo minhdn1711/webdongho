@@ -16,14 +16,17 @@ class ProductController extends Controller
         $product = Product::with([
             'categories',
             'productImages',
-            'reviews' => fn($q) => $q->where('is_approved', true)->latest(),
             'productAttributeValues.attribute',
             'productAttributeValues.attributeValue',
             'relatedProducts',
+            'reviews' => fn($q) => $q->where('is_approved', true)->latest(),
         ])->where('slug', $slug)->firstOrFail();
-        
-        // Ưu tiên sản phẩm liên quan được chọn thủ công, fallback về cùng danh mục
-        $manualRelated = $product->relatedProducts()->with('categories')->limit(8)->get();
+
+        if ($product->is_hidden) {
+            abort(404);
+        }
+
+        $manualRelated = $product->relatedProducts()->with('categories')->where('is_hidden', false)->limit(8)->get();
 
         if ($manualRelated->isNotEmpty()) {
             $relatedProducts = $manualRelated;
@@ -41,6 +44,8 @@ class ProductController extends Controller
                           });
                 })
                 ->where('id', '!=', $product->id)
+                ->where('is_hidden', false)
+                ->inRandomOrder()
                 ->limit(4)
                 ->get();
         }
@@ -52,7 +57,6 @@ class ProductController extends Controller
                 ->exists();
         }
 
-        // Tính trung bình sao
         $averageRating = $product->reviews->avg('rating') ?: 0;
         $reviewCount = $product->reviews->count();
 

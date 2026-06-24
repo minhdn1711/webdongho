@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\StorageService;
 use Inertia\Inertia;
+use League\Flysystem\FileAttributes;
 
 class ImageController extends Controller
 {
@@ -16,28 +17,29 @@ class ImageController extends Controller
 
         try {
             $folders = ['images', 'banners', 'products'];
-            $allFiles = [];
-            foreach ($folders as $folder) {
-                if (Storage::exists($folder)) {
-                    $files = Storage::allFiles($folder);
-                    if (is_array($files)) {
-                        $allFiles = array_merge($allFiles, $files);
-                    }
-                }
-            }
-
             $images = [];
-            foreach ($allFiles as $file) {
+
+            foreach ($folders as $folder) {
                 try {
-                    $images[] = [
-                        'name'          => basename($file),
-                        'url'           => Storage::url($file),
-                        'path'          => $file,
-                        'size'          => Storage::size($file) ?: 0,
-                        'last_modified' => Storage::lastModified($file) ?: 0,
-                    ];
+                    // listContents() trả về metadata (size, lastModified) trong 1 lần gọi API
+                    // thay vì N×2 HEAD request riêng lẻ như Storage::size()/lastModified()
+                    /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                    $disk = Storage::disk();
+                    $contents = $disk->getDriver()->listContents($folder, true);
+                    foreach ($contents as $item) {
+                        if ($item instanceof FileAttributes) {
+                            $path = $item->path();
+                            $images[] = [
+                                'name'          => basename($path),
+                                'url'           => Storage::url($path),
+                                'path'          => $path,
+                                'size'          => $item->fileSize() ?? 0,
+                                'last_modified' => $item->lastModified() ?? 0,
+                            ];
+                        }
+                    }
                 } catch (\Throwable $e) {
-                    // skip files that can't be accessed
+                    // skip folders that can't be listed
                 }
             }
 

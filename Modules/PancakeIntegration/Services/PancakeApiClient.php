@@ -49,6 +49,14 @@ class PancakeApiClient
         ]);
     }
 
+    public function put(string $endpoint, array $data = [])
+    {
+        return $this->request('PUT', $endpoint, [
+            'query' => ['api_key' => $this->apiToken],
+            'json' => $data
+        ]);
+    }
+
     public function delete(string $endpoint)
     {
         return $this->request('DELETE', $endpoint, [

@@ -12,7 +12,7 @@ class CategoryController extends Controller
 {
     public function show(Request $request, $slug = null)
     {
-        $query = Product::query();
+        $query = Product::where('is_hidden', false);
 
         // Filter by Category
         $currentCategory = null;
