@@ -95,7 +95,7 @@ const updateStock = () => {
                                 <button @click="openStockModal(product)" class="text-[#2271b1] hover:text-[#135e96]">Điều chỉnh kho</button>
                             </div>
                         </td>
-                        <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ product.category?.name }}</td>
+                        <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ product.categories?.map(c => c.name).join(', ') || '—' }}</td>
                         <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ formatPrice(product.price) }}</td>
                         <td class="px-3 py-2 text-[13px]">
                             <span
