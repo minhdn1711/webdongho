@@ -1,10 +1,24 @@
-﻿<script setup>
+<script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
-    products: Array,
+    products: Object,
+    filters: Object,
+});
+
+const search = ref(props.filters?.search ?? '');
+
+let searchTimer = null;
+watch(search, (val) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        router.get(route('admin.products.index'), { search: val }, {
+            preserveScroll: true,
+            replace: true,
+        });
+    }, 350);
 });
 
 const formatPrice = (price) => {
@@ -47,6 +61,24 @@ const toggleHide = (product) => {
             </div>
         </template>
 
+        <!-- Search bar -->
+        <div class="mb-3 flex items-center gap-3">
+            <div class="relative">
+                <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c8f94]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                </svg>
+                <input
+                    v-model="search"
+                    type="text"
+                    placeholder="Tìm theo tên hoặc SKU..."
+                    class="pl-8 pr-4 py-1.5 text-[13px] border border-[#8c8f94] rounded bg-white text-[#1d2327] focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1] w-72"
+                />
+            </div>
+            <span class="text-[13px] text-[#50575e]">
+                {{ products.total }} sản phẩm
+            </span>
+        </div>
+
         <div class="bg-white border border-[#c3c4c7] shadow-sm">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -60,7 +92,7 @@ const toggleHide = (product) => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="product in products" :key="product.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
+                    <tr v-for="product in products.data" :key="product.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
                         <td class="px-3 py-2">
                             <img :src="product.image || 'https://via.placeholder.com/60'" class="w-12 h-12 object-cover rounded border border-[#c3c4c7]" />
                         </td>
@@ -69,7 +101,6 @@ const toggleHide = (product) => {
                                 {{ product.name }}
                                 <span v-if="product.is_hidden" class="ml-1 text-[#d63638] text-[11px] font-normal">(Đã ẩn)</span>
                             </Link>
-                            <!-- Row Actions (WordPress style) -->
                             <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[#8c8f94]">
                                 <Link :href="route('admin.products.edit', product.id)" class="text-[#2271b1] hover:text-[#135e96]">Sửa</Link>
                                 <span>|</span>
@@ -99,11 +130,39 @@ const toggleHide = (product) => {
                             <span v-else class="text-[#dcdcde]">☆</span>
                         </td>
                     </tr>
-                    <tr v-if="!products.length">
-                        <td colspan="6" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có sản phẩm nào.</td>
+                    <tr v-if="!products.data.length">
+                        <td colspan="6" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">
+                            {{ search ? 'Không tìm thấy sản phẩm nào.' : 'Chưa có sản phẩm nào.' }}
+                        </td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="products.last_page > 1" class="mt-4 flex items-center justify-between">
+            <p class="text-[13px] text-[#50575e]">
+                Hiển thị {{ products.from }}–{{ products.to }} / {{ products.total }} sản phẩm
+            </p>
+            <div class="flex items-center gap-1">
+                <template v-for="link in products.links" :key="link.label">
+                    <Link
+                        v-if="link.url"
+                        :href="link.url"
+                        v-html="link.label"
+                        preserve-scroll
+                        class="px-3 py-1 text-[13px] border rounded transition"
+                        :class="link.active
+                            ? 'bg-[#2271b1] text-white border-[#2271b1]'
+                            : 'bg-white text-[#2271b1] border-[#c3c4c7] hover:bg-[#f0f0f1]'"
+                    />
+                    <span
+                        v-else
+                        v-html="link.label"
+                        class="px-3 py-1 text-[13px] border border-[#c3c4c7] rounded text-[#8c8f94] bg-[#f6f7f7] cursor-default"
+                    />
+                </template>
+            </div>
         </div>
 
         <!-- Delete Confirmation Modal -->

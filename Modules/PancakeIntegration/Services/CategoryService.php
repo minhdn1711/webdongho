@@ -31,10 +31,16 @@ class CategoryService
             $mapping = PancakeCategoryMapping::where('category_id', $category->id)->first();
 
             $payload = [
-                'category' => [
-                    'name' => $category->name,
-                ]
+                'name' => $category->name,
             ];
+
+            // Đồng bộ parent_id nếu danh mục cha đã được sync lên Pancake
+            if ($category->parent_id) {
+                $parentMapping = PancakeCategoryMapping::where('category_id', $category->parent_id)->first();
+                if ($parentMapping && $parentMapping->pancake_category_id) {
+                    $payload['parent_id'] = (int) $parentMapping->pancake_category_id;
+                }
+            }
 
             if ($mapping && $mapping->pancake_category_id) {
                 $response = $this->client->patch("/categories/{$mapping->pancake_category_id}", $payload);

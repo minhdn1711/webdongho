@@ -18,10 +18,20 @@ use Illuminate\Support\Facades\Http;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = Product::with('categories')->latest();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('sku', 'like', "%{$search}%");
+            });
+        }
+
         return Inertia::render('Admin/Products/Index', [
-            'products' => Product::with('categories')->latest()->get()
+            'products' => $query->paginate(20)->withQueryString(),
+            'filters'  => ['search' => $request->input('search', '')],
         ]);
     }
 
