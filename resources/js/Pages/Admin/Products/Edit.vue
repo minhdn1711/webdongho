@@ -99,6 +99,30 @@ const selectedRelatedProducts = computed(() =>
     (props.products || []).filter(p => form.related_product_ids.includes(p.id))
 );
 
+const categoryTree = computed(() => {
+    const all = props.categories || [];
+    const roots = all.filter(c => !c.parent_id);
+    return roots.map(root => ({
+        ...root,
+        children: all.filter(c => c.parent_id === root.id),
+    }));
+});
+
+const toggleCategory = (cat) => {
+    const ids = form.category_ids;
+    if (ids.includes(cat.id)) {
+        const toRemove = new Set([cat.id]);
+        (props.categories || []).filter(c => c.parent_id === cat.id).forEach(c => toRemove.add(c.id));
+        form.category_ids = ids.filter(id => !toRemove.has(id));
+    } else {
+        const toAdd = [cat.id];
+        if (cat.parent_id && !ids.includes(cat.parent_id)) {
+            toAdd.push(cat.parent_id);
+        }
+        form.category_ids = [...ids, ...toAdd];
+    }
+};
+
 // Main image handlers
 const handleImageSelect = (image) => {
     form.image = image.url;
@@ -400,12 +424,27 @@ const submit = () => {
                             <span class="text-[13px] font-semibold text-[#1d2327]">Danh mục</span>
                         </div>
                         <div class="p-3">
-                            <div class="max-h-[200px] overflow-y-auto border border-[#dcdcde] p-3 space-y-2">
-                                <div v-for="cat in categories" :key="cat.id" class="flex items-center">
-                                    <input type="checkbox" :id="'cat-'+cat.id" :value="cat.id" v-model="form.category_ids"
-                                        class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4" />
-                                    <label :for="'cat-'+cat.id" class="ml-2 text-[13px] text-[#50575e] cursor-pointer hover:text-[#2271b1]">{{ cat.name }}</label>
-                                </div>
+                            <div class="max-h-[200px] overflow-y-auto border border-[#dcdcde] p-3 space-y-0.5">
+                                <template v-for="parent in categoryTree" :key="parent.id">
+                                    <div class="flex items-center py-0.5">
+                                        <input type="checkbox" :id="'cat-'+parent.id"
+                                            :checked="form.category_ids.includes(parent.id)"
+                                            @change="toggleCategory(parent)"
+                                            class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4 shrink-0" />
+                                        <label :for="'cat-'+parent.id" class="ml-2 text-[13px] font-semibold text-[#1d2327] cursor-pointer hover:text-[#2271b1] select-none">
+                                            {{ parent.name }}
+                                        </label>
+                                    </div>
+                                    <div v-for="child in parent.children" :key="child.id" class="flex items-center py-0.5 pl-5">
+                                        <input type="checkbox" :id="'cat-'+child.id"
+                                            :checked="form.category_ids.includes(child.id)"
+                                            @change="toggleCategory(child)"
+                                            class="rounded border-[#8c8f94] text-[#2271b1] focus:ring-[#2271b1] h-4 w-4 shrink-0" />
+                                        <label :for="'cat-'+child.id" class="ml-2 text-[13px] text-[#50575e] cursor-pointer hover:text-[#2271b1] select-none">
+                                            {{ child.name }}
+                                        </label>
+                                    </div>
+                                </template>
                             </div>
                             <div v-if="form.errors.category_ids" class="text-[#d63638] text-[11px] mt-1">{{ form.errors.category_ids }}</div>
                         </div>
