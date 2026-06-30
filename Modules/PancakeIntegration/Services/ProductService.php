@@ -163,45 +163,73 @@ class ProductService
                     }
                 }
 
-                // Build variation updates: chỉ gửi id + images cho đúng variation
-                $varImageUpdates = [];
+                // Tách thành 2 nhóm:
+                // - $existingVarUpdates: variation đã có trên Pancake → gửi {id, images}
+                // - $newVariations:      variation mới chưa có trên Pancake → gửi full data (Pancake sẽ tạo mới)
+                $existingVarUpdates = [];
+                $newVariations      = [];
+
                 foreach ($payload['product']['variations'] as $localVar) {
                     $localCustomId = $localVar['custom_id'] ?? null;
                     $pancakeVarId  = $localCustomId ? ($pancakeVarByCustomId[$localCustomId] ?? null) : null;
+
                     if ($pancakeVarId) {
-                        $varImageUpdates[] = [
+                        $existingVarUpdates[] = [
                             'id'     => $pancakeVarId,
                             'images' => $localVar['images'] ?? [],
                         ];
+                    } else {
+                        // Biến thể mới chưa tồn tại trên Pancake → gửi không có 'id' để Pancake tạo mới
+                        $newVariations[] = $localVar;
+                    }
+                }
+
+                $allVarUpdates = [...$existingVarUpdates, ...$newVariations];
+
+                // Fallback: không có match nào VÀ không có biến thể mới
+                // (xảy ra khi sản phẩm tạo thẳng trên POS với display_id khác format)
+                // → gán ảnh chính vào tất cả variation hiện có trên Pancake
+                if (empty($allVarUpdates) && !empty($pancakeVars) && !empty($mainImages)) {
+                    foreach ($pancakeVars as $pv) {
+                        if (!empty($pv['id'])) {
+                            $allVarUpdates[] = [
+                                'id'     => $pv['id'],
+                                'images' => [$mainImages[0]],
+                            ];
+                        }
                     }
                 }
 
                 $updatePayload = [
                     'product' => [
-                        'name'         => $payload['product']['name'],
-                        'note_product' => $payload['product']['note_product'],
-                        'category_ids' => $payload['product']['category_ids'],
-                        'description'  => $payload['product']['description'],
-                        'is_published' => true,
+                        'name'               => $payload['product']['name'],
+                        'note_product'       => $payload['product']['note_product'],
+                        'category_ids'       => $payload['product']['category_ids'],
+                        'description'        => $payload['product']['description'],
+                        'is_published'       => true,
+                        'product_attributes' => $payload['product']['product_attributes'],
                     ],
                 ];
 
-                if (!empty($varImageUpdates)) {
-                    $updatePayload['product']['variations'] = $varImageUpdates;
+                if (!empty($allVarUpdates)) {
+                    $updatePayload['product']['variations'] = $allVarUpdates;
                 }
 
-                $response = $this->client->patch("/products/{$mapping->pancake_product_id}", $updatePayload);
-                $action   = 'update';
+                $response   = $this->client->patch("/products/{$mapping->pancake_product_id}", $updatePayload);
+                $action     = 'update';
+                $sentPayload = $updatePayload;
 
                 // Sản phẩm bị xóa trên POS → tạo lại từ đầu
                 if ($response->status() === 404) {
                     $mapping->delete();
-                    $response = $this->client->post('/products', $payload);
-                    $action   = 'create';
+                    $response    = $this->client->post('/products', $payload);
+                    $action      = 'create';
+                    $sentPayload = $payload;
                 }
             } else {
-                $response = $this->client->post('/products', $payload);
-                $action   = 'create';
+                $response    = $this->client->post('/products', $payload);
+                $action      = 'create';
+                $sentPayload = $payload;
             }
 
             if ($response->successful()) {
@@ -218,16 +246,16 @@ class ProductService
                     );
                 }
 
-                $this->logSync($product, $action, 'success', $payload, $response->json());
+                $this->logSync($product, $action, 'success', $sentPayload, $response->json());
                 return true;
             }
 
-            $this->logSync($product, $action, 'failed', $payload, $response->json(), $response->body());
+            $this->logSync($product, $action, 'failed', $sentPayload, $response->json(), $response->body());
             return false;
 
         } catch (\Exception $e) {
             Log::error("Pancake Product Sync Error: " . $e->getMessage());
-            $this->logSync($product, 'sync', 'failed', $payload ?? [], null, $e->getMessage());
+            $this->logSync($product, 'sync', 'failed', $sentPayload ?? $payload ?? [], null, $e->getMessage());
             return false;
         }
     }
