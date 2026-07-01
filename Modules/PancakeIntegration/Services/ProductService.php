@@ -186,6 +186,20 @@ class ProductService
 
                 $allVarUpdates = [...$existingVarUpdates, ...$newVariations];
 
+                // Ẩn các variation trên Pancake không còn tồn tại ở local
+                $localCustomIds = array_values(array_filter(
+                    array_column($payload['product']['variations'], 'custom_id')
+                ));
+                foreach ($pancakeVars as $pv) {
+                    $displayId = $pv['display_id'] ?? null;
+                    if ($displayId && !in_array($displayId, $localCustomIds) && !empty($pv['id'])) {
+                        $allVarUpdates[] = [
+                            'id'        => $pv['id'],
+                            'is_hidden' => true,
+                        ];
+                    }
+                }
+
                 // Fallback: không có match nào VÀ không có biến thể mới
                 // (xảy ra khi sản phẩm tạo thẳng trên POS với display_id khác format)
                 // → gán ảnh chính vào tất cả variation hiện có trên Pancake
