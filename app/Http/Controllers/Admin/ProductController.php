@@ -94,7 +94,13 @@ class ProductController extends Controller
         ]);
 
         $data = $request->except(['image_file', 'category_ids', 'gallery_files', 'gallery_urls', 'delete_image_ids', 'related_product_ids']);
-        $data['slug'] = Str::slug($request->name);
+        $slug = Str::slug($request->name);
+        $base = $slug;
+        $n = 1;
+        while (Product::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . $n++;
+        }
+        $data['slug'] = $slug;
         $data['category_id'] = $request->category_ids[0] ?? null;
 
         if ($request->hasFile('image_file')) {
@@ -104,7 +110,11 @@ class ProductController extends Controller
 
         $product = Product::create($data);
         $product->categories()->sync($request->category_ids);
-        $product->relatedProducts()->sync($request->related_product_ids ?? []);
+        try {
+            $product->relatedProducts()->sync($request->related_product_ids ?? []);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('relatedProducts sync skipped: ' . $e->getMessage());
+        }
 
         // Save product attributes
         if ($request->has('product_attributes')) {
@@ -154,7 +164,13 @@ class ProductController extends Controller
         ]);
 
         $data = $request->except(['image_file', 'category_ids', 'gallery_files', 'gallery_urls', 'delete_image_ids', 'related_product_ids']);
-        $data['slug'] = Str::slug($request->name);
+        $slug = Str::slug($request->name);
+        $base = $slug;
+        $n = 1;
+        while (Product::where('slug', $slug)->where('id', '!=', $product->id)->exists()) {
+            $slug = $base . '-' . $n++;
+        }
+        $data['slug'] = $slug;
         $data['category_id'] = $request->category_ids[0] ?? null;
 
         if ($request->hasFile('image_file')) {
@@ -168,7 +184,11 @@ class ProductController extends Controller
 
         $product->update($data);
         $product->categories()->sync($request->category_ids);
-        $product->relatedProducts()->sync($request->related_product_ids ?? []);
+        try {
+            $product->relatedProducts()->sync($request->related_product_ids ?? []);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('relatedProducts sync skipped: ' . $e->getMessage());
+        }
 
         // Save product attributes
         if ($request->has('product_attributes')) {

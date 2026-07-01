@@ -59,6 +59,10 @@ return [
             'root' => env('AWS_FOLDER', ''),
             'throw' => false,
             'report' => false,
+            'http' => [
+                'connect_timeout' => 5,
+                'timeout' => 15,
+            ],
         ],
 
     ],

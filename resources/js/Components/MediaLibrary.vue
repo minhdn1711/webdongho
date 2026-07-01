@@ -34,7 +34,7 @@ const fetchImages = async () => {
         });
         images.value = response.data.images || [];
         if (response.data.error) {
-            fetchError.value = response.data.error;
+            fetchError.value = 'Lỗi kết nối Storage: ' + response.data.error;
         }
     } catch (error) {
         fetchError.value = error.response?.data?.error || error.message || 'Không thể tải thư viện ảnh.';

@@ -18,11 +18,10 @@ class ImageController extends Controller
         try {
             $folders = ['images', 'banners', 'products'];
             $images = [];
+            $folderErrors = [];
 
             foreach ($folders as $folder) {
                 try {
-                    // listContents() trả về metadata (size, lastModified) trong 1 lần gọi API
-                    // thay vì N×2 HEAD request riêng lẻ như Storage::size()/lastModified()
                     /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
                     $disk = Storage::disk();
                     $contents = $disk->getDriver()->listContents($folder, true);
@@ -39,17 +38,26 @@ class ImageController extends Controller
                         }
                     }
                 } catch (\Throwable $e) {
-                    // skip folders that can't be listed
+                    $folderErrors[] = $folder . ': ' . $e->getMessage();
+                    \Log::warning("Media Library folder [{$folder}] error: " . $e->getMessage());
                 }
             }
 
             usort($images, fn($a, $b) => $b['last_modified'] <=> $a['last_modified']);
 
+            $storageError = !empty($folderErrors) ? implode('; ', $folderErrors) : null;
+
             if ($isAjax) {
-                return response()->json(['images' => $images]);
+                return response()->json([
+                    'images' => $images,
+                    'error'  => $storageError,
+                ]);
             }
 
-            return Inertia::render('Admin/Images/Index', ['images' => $images]);
+            return Inertia::render('Admin/Images/Index', [
+                'images' => $images,
+                'error'  => $storageError ? 'Lỗi Storage: ' . $storageError : null,
+            ]);
 
         } catch (\Throwable $e) {
             // Log safely — nếu log thất bại không được throw ra ngoài
