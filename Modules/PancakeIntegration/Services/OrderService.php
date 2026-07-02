@@ -56,10 +56,10 @@ class OrderService
                 'shipping_address' => [
                     'full_name' => $order->customer_name,
                     'phone_number' => $order->customer_phone,
-                    'address' => $order->shipping_address ? $order->custom_address : 'Chưa có địa chỉ',
-                    'full_address' => $order->shipping_address ? $order->custom_address : 'Chưa có địa chỉ',
+                    'address' => $order->customer_address ?: 'Chưa có địa chỉ',
+                    'full_address' => $order->customer_address ?: 'Chưa có địa chỉ',
                 ],
-                'note' => $order->note ?: '',
+                'note' => $order->notes ?: '',
                 'warehouse_id' => $warehouseId,
                 'warehouse_info' => [
                     'name' => 'Kho Lamtime',

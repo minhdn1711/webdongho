@@ -21,6 +21,10 @@ class SyncOrderJob implements ShouldQueue
 
     public function handle(OrderService $orderService): void
     {
-        $orderService->syncOrder($this->order);
+        $result = $orderService->syncOrder($this->order);
+
+        if ($result === false) {
+            throw new \RuntimeException("Pancake order sync failed for order #{$this->order->id}, will retry.");
+        }
     }
 }
