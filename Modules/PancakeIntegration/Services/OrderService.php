@@ -84,7 +84,16 @@ class OrderService
 
             if ($response->successful()) {
                 $data = $response->json();
-                $pancakeOrderId = $data['id'] ?? $data['order']['id'] ?? null;
+                $orderData = $data['data'] ?? [];
+                // Extract real Pancake order ID from order_link query param (e.g. ?order_id=450373013931542)
+                $pancakeOrderId = null;
+                if (!empty($orderData['order_link'])) {
+                    parse_str(parse_url($orderData['order_link'], PHP_URL_QUERY), $q);
+                    $pancakeOrderId = $q['order_id'] ?? null;
+                }
+                if (!$pancakeOrderId) {
+                    $pancakeOrderId = $orderData['id'] ?? $data['id'] ?? $data['order']['id'] ?? null;
+                }
 
                 if ($pancakeOrderId) {
                     PancakeOrderMapping::updateOrCreate(
