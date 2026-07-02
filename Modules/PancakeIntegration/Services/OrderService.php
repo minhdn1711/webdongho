@@ -109,14 +109,58 @@ class OrderService
         }
     }
 
+    public function syncStatusUpdate(Order $order): bool
+    {
+        $token    = PancakeSetting::getValue('pancake_api_token');
+        $shopId   = PancakeSetting::getValue('pancake_shop_id');
+        $syncEnabled = PancakeSetting::getValue('pancake_sync_orders', '1');
+
+        if (!$token || !$shopId || !($syncEnabled == '1' || $syncEnabled === true || $syncEnabled === 'true')) {
+            return false;
+        }
+
+        $mapping = PancakeOrderMapping::where('order_id', $order->id)->first();
+        if (!$mapping || !$mapping->pancake_order_id) {
+            return false;
+        }
+
+        $pancakeStatus = $this->mapStatusCode($order->status);
+        $payload = ['status' => $pancakeStatus];
+
+        try {
+            $response = $this->client->patch("/orders/{$mapping->pancake_order_id}", $payload);
+            $success  = $response->successful();
+            $this->logSync($order, 'update_status', $success ? 'success' : 'failed', $payload, $response->json(), $success ? null : $response->body());
+            return $success;
+        } catch (\Exception $e) {
+            Log::error("Pancake Order Status Sync Error: " . $e->getMessage());
+            $this->logSync($order, 'update_status', 'failed', $payload, null, $e->getMessage());
+            return false;
+        }
+    }
+
+    protected function mapStatusCode(string $localStatus): int
+    {
+        // Pancake POS numeric status codes
+        $map = [
+            'pending'    => 0,
+            'processing' => 1,
+            'shipping'   => 3,
+            'completed'  => 4,
+            'cancelled'  => 5,
+        ];
+
+        return $map[$localStatus] ?? 0;
+    }
+
     protected function mapStatus(string $localStatus): string
     {
-        // Map your local status to Pancake status
         $map = [
-            'pending' => 'new',
+            'pending'    => 'new',
             'processing' => 'confirmed',
-            'completed' => 'completed',
-            'cancelled' => 'cancelled',
+            'shipping'   => 'shipping',
+            'completed'  => 'completed',
+            'cancelled'  => 'cancelled',
         ];
 
         return $map[$localStatus] ?? 'new';

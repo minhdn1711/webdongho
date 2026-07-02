@@ -31,6 +31,14 @@ class OrderController extends Controller
 
         $order->update(['status' => $request->status]);
 
+        if (class_exists(\Modules\PancakeIntegration\Services\OrderService::class)) {
+            try {
+                app(\Modules\PancakeIntegration\Services\OrderService::class)->syncStatusUpdate($order);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Pancake order status sync failed: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->back()->with('success', 'Trạng thái đơn hàng đã được cập nhật!');
     }
 
