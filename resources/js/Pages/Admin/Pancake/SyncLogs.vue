@@ -50,7 +50,7 @@ const formatDate = (date) => {
                                 {{ log.status.toUpperCase() }}
                             </span>
                         </td>
-                        <td class="px-3 py-2 text-[12px] text-red-500 max-w-xs truncate" :title="log.error_message">
+                        <td class="px-3 py-2 text-[12px] text-red-500 max-w-sm break-words whitespace-pre-wrap">
                             {{ log.error_message }}
                         </td>
                         <td class="px-3 py-2">
