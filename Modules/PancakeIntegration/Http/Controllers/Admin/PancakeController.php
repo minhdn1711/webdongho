@@ -81,12 +81,21 @@ class PancakeController extends Controller
     {
         $log = PancakeSyncLog::findOrFail($id);
 
-        if ($log->model_type === Product::class) {
-            $product = Product::find($log->model_id);
-            if ($product) $productService->syncProduct($product);
-        } elseif ($log->model_type === Order::class) {
-            $order = Order::find($log->model_id);
-            if ($order) $orderService->syncOrder($order);
+        try {
+            if ($log->model_type === Product::class) {
+                $product = Product::find($log->model_id);
+                if ($product) $productService->syncProduct($product);
+            } elseif ($log->model_type === Order::class) {
+                $order = Order::find($log->model_id);
+                if ($order) $orderService->syncOrder($order);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('retrySync failed: ' . $e->getMessage(), [
+                'log_id'     => $id,
+                'model_type' => $log->model_type,
+                'model_id'   => $log->model_id,
+            ]);
+            return redirect()->back()->with('error', 'Thử lại thất bại: ' . $e->getMessage());
         }
 
         return redirect()->back()->with('success', 'Đã thử lại đồng bộ.');
