@@ -282,6 +282,27 @@ class ProductService
                 return true;
             }
 
+            // 422 from Pancake usually means a broken image URL — retry without images
+            if ($response->status() === 422 && str_contains($response->body(), 'upload ảnh')) {
+                $sentPayload = $this->stripImages($sentPayload);
+                if ($action === 'update') {
+                    $response = $this->client->patch("/products/{$mapping->pancake_product_id}", $sentPayload);
+                } else {
+                    $response = $this->client->post('/products', $sentPayload);
+                }
+                if ($response->successful()) {
+                    $data             = $response->json();
+                    $pancakeProductId = $data['data']['id'] ?? $data['id'] ?? null;
+                    $mappingData = ['last_synced_at' => now()];
+                    if ($pancakeProductId) $mappingData['pancake_product_id'] = $pancakeProductId;
+                    if ($pancakeProductId || ($mapping && $mapping->exists)) {
+                        PancakeProductMapping::updateOrCreate(['product_id' => $product->id], $mappingData);
+                    }
+                    $this->logSync($product, $action, 'success', $sentPayload, $response->json());
+                    return true;
+                }
+            }
+
             $this->logSync($product, $action, 'failed', $sentPayload, $response->json(), $response->body());
             return false;
 
@@ -424,6 +445,17 @@ class ProductService
             Log::error("Pancake Product Hide Sync Error: " . $e->getMessage());
             return false;
         }
+    }
+
+    protected function stripImages(array $payload): array
+    {
+        if (isset($payload['product']['variations'])) {
+            foreach ($payload['product']['variations'] as &$v) {
+                $v['images'] = [];
+            }
+            unset($v);
+        }
+        return $payload;
     }
 
     protected function logSync($product, $action, $status, $payload, $response, $error = null): void
