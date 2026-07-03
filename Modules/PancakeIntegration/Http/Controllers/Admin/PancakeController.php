@@ -77,12 +77,15 @@ class PancakeController extends Controller
         return redirect()->back()->with('success', 'Đã bắt đầu đồng bộ thủ công.');
     }
 
-    public function retrySync($id, ProductService $productService, OrderService $orderService)
+    public function retrySync($id)
     {
         \Illuminate\Support\Facades\Log::info('[retrySync] called', ['id' => $id]);
         $log = PancakeSyncLog::findOrFail($id);
 
         try {
+            $productService = app(ProductService::class);
+            $orderService   = app(OrderService::class);
+
             if ($log->model_type === Product::class) {
                 $product = Product::find($log->model_id);
                 if ($product) $productService->syncProduct($product);
