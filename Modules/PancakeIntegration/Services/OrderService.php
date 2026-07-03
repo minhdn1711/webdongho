@@ -42,9 +42,27 @@ class OrderService
                 'status' => 0,
                 'items' => $order->items->map(function ($item) use ($warehouseId) {
                     $productMapping = \Modules\PancakeIntegration\Models\PancakeProductMapping::where('product_id', $item->product_id)->first();
+
+                    $variationId = null;
+                    if ($productMapping && $productMapping->pancake_product_id) {
+                        $variationId = $productMapping->pancake_variant_id;
+                        if (!$variationId) {
+                            $res = $this->client->get("/products/{$productMapping->pancake_product_id}");
+                            if ($res->successful()) {
+                                $activeVar = collect($res->json('data.variations', []))
+                                    ->first(fn($v) => !($v['is_hidden'] ?? false));
+                                if ($activeVar) {
+                                    $variationId = $activeVar['id'];
+                                    $productMapping->update(['pancake_variant_id' => $variationId]);
+                                }
+                            }
+                        }
+                    }
+
                     return [
                         'quantity' => (int) $item->quantity,
                         'product_id' => $productMapping ? $productMapping->pancake_product_id : null,
+                        'variation_id' => $variationId,
                         'warehouse_id' => $warehouseId,
                         'one_time_product' => $productMapping ? false : true,
                         'variation_info' => [

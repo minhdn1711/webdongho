@@ -250,13 +250,31 @@ class ProductService
                 $data             = $response->json();
                 $pancakeProductId = $data['data']['id'] ?? $data['id'] ?? null;
 
+                // Extract first active variation UUID to cache for order sync
+                $pancakeVariantId = null;
+                if (!empty($data['data']['variations'])) {
+                    $activeVar = collect($data['data']['variations'])
+                        ->first(fn($v) => !($v['is_hidden'] ?? false));
+                    $pancakeVariantId = $activeVar['id'] ?? null;
+                }
+                // For PATCH updates, fall back to the first existing variation UUID we already resolved
+                if (!$pancakeVariantId && !empty($existingVarUpdates ?? [])) {
+                    $pancakeVariantId = $existingVarUpdates[0]['id'] ?? null;
+                }
+
+                $mappingData = ['last_synced_at' => now()];
                 if ($pancakeProductId) {
+                    $mappingData['pancake_product_id'] = $pancakeProductId;
+                }
+                if ($pancakeVariantId) {
+                    $mappingData['pancake_variant_id'] = $pancakeVariantId;
+                }
+
+                // Use updateOrCreate so the 404→delete→recreate path also works correctly
+                if ($pancakeProductId || ($mapping && $mapping->exists)) {
                     PancakeProductMapping::updateOrCreate(
                         ['product_id' => $product->id],
-                        [
-                            'pancake_product_id' => $pancakeProductId,
-                            'last_synced_at'     => now(),
-                        ]
+                        $mappingData
                     );
                 }
 
