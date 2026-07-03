@@ -75,8 +75,8 @@ class PancakeApiClient
         $url = rtrim($this->baseUrl, '/') . "/shops/{$this->shopId}/" . ltrim($endpoint, '/');
         
         $response = Http::withHeaders($this->getHeaders())
-            ->timeout(30)
-            ->retry(3, 1000)
+            ->timeout(15)
+            ->retry(2, 500, fn($e) => $e instanceof \Illuminate\Http\Client\ConnectionException)
             ->send($method, $url, $options);
 
         if ($response->failed()) {
