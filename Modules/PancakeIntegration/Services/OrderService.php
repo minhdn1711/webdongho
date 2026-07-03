@@ -148,6 +148,7 @@ class OrderService
 
         $mapping = PancakeOrderMapping::where('order_id', $order->id)->first();
         if (!$mapping || !$mapping->pancake_order_id) {
+            $this->logSync($order, 'update_status', 'failed', [], null, 'No Pancake order mapping found — order may not have been synced yet');
             return false;
         }
 
