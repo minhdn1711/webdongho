@@ -79,6 +79,7 @@ class PancakeController extends Controller
 
     public function retrySync($id, ProductService $productService, OrderService $orderService)
     {
+        \Illuminate\Support\Facades\Log::info('[retrySync] called', ['id' => $id]);
         $log = PancakeSyncLog::findOrFail($id);
 
         try {
