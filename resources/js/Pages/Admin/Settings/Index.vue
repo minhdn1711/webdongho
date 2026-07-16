@@ -12,6 +12,7 @@ const props = defineProps({
 });
 
 const form = useForm({
+    meta_pixel_id: (props.settings && props.settings.meta_pixel_id) || '',
     site_name: (props.settings && props.settings.site_name) || 'Web Đồng Hồ',
     site_description: (props.settings && props.settings.site_description) || '',
     contact_email: (props.settings && props.settings.contact_email) || '',
@@ -254,6 +255,18 @@ const submit = () => {
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Email nhận thông báo kho</label>
                                         <input v-model="form.admin_notification_email" type="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="admin@example.com" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Marketing / Tracking -->
+                            <div class="space-y-4 md:col-span-2">
+                                <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Marketing &amp; Tracking</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Meta Pixel ID (Facebook)</label>
+                                        <input v-model="form.meta_pixel_id" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono" placeholder="Ví dụ: 2144647429430754" />
+                                        <p class="mt-1 text-xs text-gray-500">Nhập Pixel ID (chỉ gồm chữ số). Script sẽ tự động được chèn vào tất cả trang của website.</p>
                                     </div>
                                 </div>
                             </div>

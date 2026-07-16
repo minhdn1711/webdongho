@@ -17,8 +17,33 @@ const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+const initMetaPixel = (id) => {
+    if (!id) return;
+    if (!window.fbq) {
+        const n = window.fbq = function() {
+            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+        };
+        window._fbq = n;
+        n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
+        const t = document.createElement('script');
+        t.async = true;
+        t.src = 'https://connect.facebook.net/en_US/fbevents.js';
+        document.head.appendChild(t);
+    }
+    window.fbq('init', id);
+    window.fbq('track', 'PageView');
+};
+
 onMounted(() => {
     window.addEventListener('scroll', handleScroll);
+
+    const pixelId = settings.value.meta_pixel_id;
+    if (pixelId) {
+        initMetaPixel(pixelId);
+        router.on('navigate', () => {
+            if (window.fbq) window.fbq('track', 'PageView');
+        });
+    }
 });
 
 onUnmounted(() => {
@@ -38,6 +63,12 @@ const formatPrice = (price) => {
 
 <template>
     <div class="min-h-screen bg-white font-sans text-gray-900">
+        <!-- Meta Pixel noscript fallback -->
+        <noscript v-if="settings.meta_pixel_id">
+            <img height="1" width="1" style="display:none"
+                :src="`https://www.facebook.com/tr?id=${settings.meta_pixel_id}&ev=PageView&noscript=1`" />
+        </noscript>
+
         <!-- Top Bar -->
         <div class="bg-[#d10000] text-white text-[10px] md:text-xs py-2 px-4 flex justify-between items-center overflow-hidden">
             <div class="hidden md:block truncate">{{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}</div>
