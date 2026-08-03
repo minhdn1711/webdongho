@@ -55,32 +55,55 @@ class OrderService
                                 $variations = collect($res->json('data.variations', []))
                                     ->filter(fn($v) => !($v['is_hidden'] ?? false));
 
-                                Log::info('[PancakeSync] Variation match debug', [
-                                    'order_item'      => $item->product_name,
-                                    'item_attributes' => $item->attributes,
-                                    'pancake_variations' => $variations->map(fn($v) => ['id' => $v['id'], 'name' => $v['name'] ?? ''])->values()->toArray(),
-                                ]);
-
                                 $matched = null;
                                 if ($hasAttributes) {
-                                    $normalize = fn($s) => mb_strtolower(preg_replace('/[\s\-_]+/', '', $s));
-                                    $attrValues = array_values($item->attributes);
+                                    $normalize = fn($s) => mb_strtolower(preg_replace('/[\s\-_\s]+/', '', $s));
+                                    $attrValues = array_filter(array_map('strval', array_values($item->attributes)));
+
                                     $matched = $variations->first(function ($v) use ($attrValues, $normalize) {
-                                        $varName = $normalize($v['name'] ?? '');
+                                        // Build candidate strings from all Pancake fields
+                                        $candidates = [];
+
+                                        // name field (often empty)
+                                        if (!empty($v['name'])) {
+                                            $candidates[] = $v['name'];
+                                        }
+
+                                        // SKU format: "SKU-{number}-{variation name}"
+                                        if (!empty($v['sku'])) {
+                                            if (preg_match('/^SKU-\d+-(.+)$/u', $v['sku'], $m)) {
+                                                $candidates[] = $m[1];
+                                            } else {
+                                                $candidates[] = $v['sku'];
+                                            }
+                                        }
+
+                                        // properties array: [{name, value}, ...]
+                                        foreach ($v['properties'] ?? [] as $prop) {
+                                            if (!empty($prop['value'])) $candidates[] = $prop['value'];
+                                        }
+
+                                        // option_values / options array
+                                        foreach ($v['option_values'] ?? $v['options'] ?? [] as $opt) {
+                                            if (is_string($opt)) $candidates[] = $opt;
+                                            elseif (!empty($opt['value'])) $candidates[] = $opt['value'];
+                                        }
+
                                         foreach ($attrValues as $val) {
-                                            $normVal = $normalize((string) $val);
-                                            if ($varName === $normVal
-                                                || str_contains($varName, $normVal)
-                                                || str_contains($normVal, $varName)) {
-                                                return true;
+                                            $normVal = $normalize($val);
+                                            if ($normVal === '') continue;
+                                            foreach ($candidates as $cand) {
+                                                $normCand = $normalize((string) $cand);
+                                                if ($normCand === '') continue;
+                                                if ($normCand === $normVal
+                                                    || str_contains($normCand, $normVal)
+                                                    || str_contains($normVal, $normCand)) {
+                                                    return true;
+                                                }
                                             }
                                         }
                                         return false;
                                     });
-
-                                    Log::info('[PancakeSync] Variation match result', [
-                                        'matched_variation' => $matched ? ['id' => $matched['id'], 'name' => $matched['name'] ?? ''] : null,
-                                    ]);
                                 }
 
                                 $best = $matched ?? $variations->first();
