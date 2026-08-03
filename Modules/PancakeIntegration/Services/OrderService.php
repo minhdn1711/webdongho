@@ -55,6 +55,12 @@ class OrderService
                                 $variations = collect($res->json('data.variations', []))
                                     ->filter(fn($v) => !($v['is_hidden'] ?? false));
 
+                                Log::info('[PancakeSync] Variation match debug', [
+                                    'order_item'      => $item->product_name,
+                                    'item_attributes' => $item->attributes,
+                                    'pancake_variations' => $variations->map(fn($v) => ['id' => $v['id'], 'name' => $v['name'] ?? ''])->values()->toArray(),
+                                ]);
+
                                 $matched = null;
                                 if ($hasAttributes) {
                                     $normalize = fn($s) => mb_strtolower(preg_replace('/[\s\-_]+/', '', $s));
@@ -71,6 +77,10 @@ class OrderService
                                         }
                                         return false;
                                     });
+
+                                    Log::info('[PancakeSync] Variation match result', [
+                                        'matched_variation' => $matched ? ['id' => $matched['id'], 'name' => $matched['name'] ?? ''] : null,
+                                    ]);
                                 }
 
                                 $best = $matched ?? $variations->first();
