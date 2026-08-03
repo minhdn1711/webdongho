@@ -55,41 +55,32 @@ class OrderService
                                 $variations = collect($res->json('data.variations', []))
                                     ->filter(fn($v) => !($v['is_hidden'] ?? false));
 
-                                Log::info('[PS:raw]', ['first_variation' => $variations->first(), 'attrs' => $item->attributes]);
-
                                 $matched = null;
                                 if ($hasAttributes) {
-                                    $normalize = fn($s) => mb_strtolower(preg_replace('/[\s\-_\s]+/', '', $s));
+                                    $normalize = fn($s) => mb_strtolower(preg_replace('/[\s\-_]+/', '', $s));
                                     $attrValues = array_filter(array_map('strval', array_values($item->attributes)));
 
                                     $matched = $variations->first(function ($v) use ($attrValues, $normalize) {
-                                        // Build candidate strings from all Pancake fields
                                         $candidates = [];
 
-                                        // name field (often empty)
-                                        if (!empty($v['name'])) {
-                                            $candidates[] = $v['name'];
-                                        }
+                                        // name field
+                                        if (!empty($v['name'])) $candidates[] = $v['name'];
 
-                                        // SKU format: "SKU-{number}-{variation name}"
-                                        if (!empty($v['sku'])) {
-                                            if (preg_match('/^SKU-\d+-(.+)$/u', $v['sku'], $m)) {
+                                        // display_id: "SKU-88-Đồng hồ bạc mặt bạc"
+                                        if (!empty($v['display_id'])) {
+                                            if (preg_match('/^SKU-\d+-(.+)$/u', $v['display_id'], $m)) {
                                                 $candidates[] = $m[1];
                                             } else {
-                                                $candidates[] = $v['sku'];
+                                                $candidates[] = $v['display_id'];
                                             }
                                         }
 
-                                        // properties array: [{name, value}, ...]
-                                        foreach ($v['properties'] ?? [] as $prop) {
-                                            if (!empty($prop['value'])) $candidates[] = $prop['value'];
+                                        // fields array: [{name, value}] — Pancake variation properties
+                                        foreach ($v['fields'] ?? [] as $field) {
+                                            if (!empty($field['value'])) $candidates[] = $field['value'];
                                         }
 
-                                        // option_values / options array
-                                        foreach ($v['option_values'] ?? $v['options'] ?? [] as $opt) {
-                                            if (is_string($opt)) $candidates[] = $opt;
-                                            elseif (!empty($opt['value'])) $candidates[] = $opt['value'];
-                                        }
+                                        if (empty($candidates)) return false;
 
                                         foreach ($attrValues as $val) {
                                             $normVal = $normalize($val);
