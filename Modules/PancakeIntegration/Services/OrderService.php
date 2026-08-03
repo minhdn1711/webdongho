@@ -45,15 +45,40 @@ class OrderService
 
                     $variationId = null;
                     if ($productMapping && $productMapping->pancake_product_id) {
-                        $variationId = $productMapping->pancake_variant_id;
-                        if (!$variationId) {
+                        $hasAttributes = !empty($item->attributes) && count($item->attributes) > 0;
+
+                        if (!$hasAttributes && $productMapping->pancake_variant_id) {
+                            $variationId = $productMapping->pancake_variant_id;
+                        } else {
                             $res = $this->client->get("/products/{$productMapping->pancake_product_id}");
                             if ($res->successful()) {
-                                $activeVar = collect($res->json('data.variations', []))
-                                    ->first(fn($v) => !($v['is_hidden'] ?? false));
-                                if ($activeVar) {
-                                    $variationId = $activeVar['id'];
-                                    $productMapping->update(['pancake_variant_id' => $variationId]);
+                                $variations = collect($res->json('data.variations', []))
+                                    ->filter(fn($v) => !($v['is_hidden'] ?? false));
+
+                                $matched = null;
+                                if ($hasAttributes) {
+                                    $normalize = fn($s) => mb_strtolower(preg_replace('/[\s\-_]+/', '', $s));
+                                    $attrValues = array_values($item->attributes);
+                                    $matched = $variations->first(function ($v) use ($attrValues, $normalize) {
+                                        $varName = $normalize($v['name'] ?? '');
+                                        foreach ($attrValues as $val) {
+                                            $normVal = $normalize((string) $val);
+                                            if ($varName === $normVal
+                                                || str_contains($varName, $normVal)
+                                                || str_contains($normVal, $varName)) {
+                                                return true;
+                                            }
+                                        }
+                                        return false;
+                                    });
+                                }
+
+                                $best = $matched ?? $variations->first();
+                                if ($best) {
+                                    $variationId = $best['id'];
+                                    if ($variations->count() === 1) {
+                                        $productMapping->update(['pancake_variant_id' => $variationId]);
+                                    }
                                 }
                             }
                         }
