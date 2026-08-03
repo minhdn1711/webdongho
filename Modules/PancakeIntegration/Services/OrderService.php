@@ -55,6 +55,8 @@ class OrderService
                                 $variations = collect($res->json('data.variations', []))
                                     ->filter(fn($v) => !($v['is_hidden'] ?? false));
 
+                                Log::info('[PS:raw]', ['first_variation' => $variations->first(), 'attrs' => $item->attributes]);
+
                                 $matched = null;
                                 if ($hasAttributes) {
                                     $normalize = fn($s) => mb_strtolower(preg_replace('/[\s\-_\s]+/', '', $s));
