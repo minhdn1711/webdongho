@@ -45,6 +45,26 @@ const formatPrice = (price) => {
                 </div>
             </div>
 
+            <div v-if="order.items && order.items.length" class="bg-gray-50 p-8 rounded-none text-left mb-12">
+                <h2 class="text-lg font-bold border-b pb-4 mb-6 uppercase tracking-wider">Sản phẩm đã đặt</h2>
+                <div class="space-y-4">
+                    <div v-for="item in order.items" :key="item.id" class="flex justify-between items-start text-sm">
+                        <div>
+                            <span class="font-medium">{{ item.product_name }}</span>
+                            <div v-if="item.attributes && Object.keys(item.attributes).length" class="flex flex-wrap gap-1 mt-1">
+                                <span
+                                    v-for="(val, key) in item.attributes"
+                                    :key="key"
+                                    class="inline-block text-[10px] bg-white border text-gray-600 px-2 py-0.5 rounded"
+                                >{{ key }}: {{ val }}</span>
+                            </div>
+                            <span class="text-gray-500 text-xs mt-0.5 block">x{{ item.quantity }}</span>
+                        </div>
+                        <span class="font-bold text-[#d10000] shrink-0 ml-4">{{ formatPrice(item.price * item.quantity) }}</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex flex-col md:flex-row gap-4 justify-center">
                 <Link :href="'/'" class="bg-black text-white px-10 py-3 uppercase font-bold tracking-widest hover:bg-[#d10000] transition">
                     Tiếp tục mua sắm

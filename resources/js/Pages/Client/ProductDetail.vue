@@ -354,8 +354,8 @@ const addToCart = () => {
                     </button>
                 </div>
 
-                <div v-if="activeTab === 'description'" class="py-12 prose max-w-none">
-                    <p v-if="product.description" v-html="product.description"></p>
+                <div v-if="activeTab === 'description'" class="py-12 overflow-x-auto">
+                    <div v-if="product.description" class="prose max-w-none" v-html="product.description"></div>
                     <div v-else class="space-y-6">
                         <p>Lamtime là thương hiệu đồng hồ nổi tiếng đến từ Hàn Quốc, được yêu thích bởi các thiết kế thời trang, đa dạng và giá thành hợp lý. Mỗi chiếc đồng hồ Lamtime đều được chế tác tỉ mỉ, sử dụng bộ máy bền bỉ và chất liệu an toàn.</p>
                         <ul class="list-disc pl-5 space-y-2">

@@ -65,7 +65,16 @@ const deleteOrder = () => {
                                                 <div class="w-12 h-12 bg-gray-100 border shrink-0 overflow-hidden rounded">
                                                     <img v-if="item.product" :src="item.product.image" class="w-full h-full object-cover" />
                                                 </div>
-                                                <span class="font-medium">{{ item.product_name }}</span>
+                                                <div>
+                                                    <span class="font-medium">{{ item.product_name }}</span>
+                                                    <div v-if="item.attributes && Object.keys(item.attributes).length" class="flex flex-wrap gap-1 mt-1">
+                                                        <span
+                                                            v-for="(val, key) in item.attributes"
+                                                            :key="key"
+                                                            class="inline-block text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
+                                                        >{{ key }}: {{ val }}</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="py-4 text-center">{{ formatPrice(item.price) }}</td>
