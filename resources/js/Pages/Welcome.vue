@@ -12,6 +12,7 @@ const props = defineProps({
     canRegister: Boolean,
     categories: Array,
     products: Array,
+    sale_products: Array,
     latest_posts: Array,
     banners: Array,
 });
@@ -33,6 +34,15 @@ onMounted(() => {
 onUnmounted(() => {
     if (bannerInterval.value) clearInterval(bannerInterval.value);
 });
+
+const saleCarousel = ref(null);
+const scrollSale = (dir) => {
+    const el = saleCarousel.value;
+    if (!el) return;
+    const item = el.querySelector(':scope > div');
+    const itemWidth = item ? item.offsetWidth + 16 : 300;
+    el.scrollBy({ left: dir * itemWidth * 2, behavior: 'smooth' });
+};
 
 const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -96,12 +106,41 @@ const formatDate = (dateString) => {
             </div>
         </section>
 
+        <!-- Sale Hot Carousel -->
+        <section v-if="sale_products && sale_products.length" class="py-16 md:py-20 bg-[#fff5f5]">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex items-end justify-between mb-10 gap-4">
+                    <div>
+                        <h2 class="text-xs font-bold text-[#d10000] uppercase tracking-[0.4em] mb-3">Ưu đãi hôm nay</h2>
+                        <h3 class="text-3xl md:text-4xl font-bold uppercase italic tracking-tight flex items-center gap-3">
+                            <span class="text-[#d10000]">&#128293;</span> Sale Hot
+                        </h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button @click="scrollSale(-1)" aria-label="Trước" class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-[#d10000] hover:border-[#d10000] hover:text-white transition shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button @click="scrollSale(1)" aria-label="Tiếp" class="w-10 h-10 border border-gray-300 flex items-center justify-center hover:bg-[#d10000] hover:border-[#d10000] hover:text-white transition shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div ref="saleCarousel" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar pb-1">
+                    <div v-for="product in sale_products" :key="product.id"
+                         class="min-w-[calc(50%-8px)] md:min-w-[calc(25%-12px)] snap-start">
+                        <ProductCard :product="product" />
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Featured Products -->
         <section class="bg-white py-16 md:py-24">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
                     <div class="text-center md:text-left">
-                        <h2 class="text-xs md:text-sm font-bold text-[#d10000] uppercase tracking-[0.4em] mb-4">Bộ sưu tập mới</h2>
+                        <h2 class="text-xs md:text-sm font-bold text-[#d10000] uppercase tracking-[0.4em] mb-4">Mới nhất</h2>
                         <h3 class="text-3xl md:text-5xl font-bold uppercase italic tracking-tight">Sản Phẩm Nổi Bật</h3>
                     </div>
                     <div class="hidden md:block w-40 h-px bg-gray-200"></div>
@@ -187,4 +226,6 @@ const formatDate = (dateString) => {
 .animate-fade-in-up {
     animation: fade-in-up 0.8s ease-out;
 }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

@@ -14,7 +14,13 @@ Route::get('/', function () {
             return $banner;
         }),
         'categories' => \App\Models\Category::whereNull('parent_id')->get(),
-        'products' => \App\Models\Product::with('categories')->where('is_featured', true)->where('is_hidden', false)->get(),
+        'sale_products' => \App\Models\Product::with('categories')
+            ->whereNotNull('sale_price')->where('sale_price', '>', 0)
+            ->where('is_hidden', false)
+            ->latest()->limit(10)->get(),
+        'products' => \App\Models\Product::with('categories')
+            ->where('is_hidden', false)
+            ->latest()->limit(12)->get(),
         'latest_posts' => \App\Models\Post::where('is_published', true)->latest()->limit(3)->get(),
     ]);
 });

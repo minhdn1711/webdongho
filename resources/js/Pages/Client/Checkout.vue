@@ -93,11 +93,17 @@ const submit = () => {
                             </div>
                             <div class="flex-1">
                                 <h3 class="text-sm font-bold mb-1">{{ item.name }}</h3>
+                                <div v-if="item.attributes && Object.keys(item.attributes).length" class="flex flex-wrap gap-1 mb-1">
+                                    <span v-for="(val, key) in item.attributes" :key="key"
+                                          class="text-[10px] bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded">
+                                        {{ key }}: {{ val }}
+                                    </span>
+                                </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-gray-500">Số lượng: {{ item.quantity }}</span>
                                     <span class="font-bold text-[#d10000]">{{ formatPrice(item.price * item.quantity) }}</span>
                                 </div>
-                                <button @click="cart.remove(item.id)" class="text-xs text-gray-400 hover:text-red-500 mt-2 underline">Xóa</button>
+                                <button @click="cart.remove(item.cartKey)" class="text-xs text-gray-400 hover:text-red-500 mt-2 underline">Xóa</button>
                             </div>
                         </div>
                     </div>
