@@ -15,6 +15,7 @@ const props = defineProps({
     sale_products: Array,
     latest_posts: Array,
     banners: Array,
+    site_features: Array,
 });
 
 const currentBanner = ref(0);
@@ -156,28 +157,18 @@ const formatDate = (dateString) => {
         </section>
 
         <!-- Why Choose Us -->
-        <section class="bg-gray-50 py-16 border-y border-gray-100">
-            <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-                <div class="flex flex-col items-center text-center px-6">
+        <section v-if="site_features && site_features.length" class="bg-gray-50 py-16 border-y border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 grid gap-8 md:gap-12"
+                 :class="site_features.length === 1 ? 'grid-cols-1 max-w-sm' : site_features.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'">
+                <div v-for="(feat, idx) in site_features" :key="feat.id"
+                     class="flex flex-col items-center text-center px-6"
+                     :class="{ 'border-x border-gray-200': site_features.length === 3 && idx === 1 }">
                     <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-gray-100">
-                        <svg class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
+                        <svg v-if="feat.icon_svg" class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24" v-html="feat.icon_svg"></svg>
+                        <span v-else class="w-8 h-8 text-[#d10000] font-bold text-xl">✦</span>
                     </div>
-                    <h4 class="text-sm font-bold uppercase tracking-widest mb-3">100% Chính hãng</h4>
-                    <p class="text-xs text-gray-500 leading-relaxed">Cam kết mọi sản phẩm bán ra đều là hàng chính hãng Julius Hàn Quốc, đầy đủ hộp sổ thẻ.</p>
-                </div>
-                <div class="flex flex-col items-center text-center px-6 border-x border-gray-200">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-gray-100">
-                        <svg class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <h4 class="text-sm font-bold uppercase tracking-widest mb-3">Bảo hành 12 tháng</h4>
-                    <p class="text-xs text-gray-500 leading-relaxed">Chế độ hậu mãi chuyên nghiệp, thay pin miễn phí trọn đời cho mọi đơn hàng tại website.</p>
-                </div>
-                <div class="flex flex-col items-center text-center px-6">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-6 border border-gray-100">
-                        <svg class="w-8 h-8 text-[#d10000]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                    </div>
-                    <h4 class="text-sm font-bold uppercase tracking-widest mb-3">Giao hàng tận nơi</h4>
-                    <p class="text-xs text-gray-500 leading-relaxed">Giao hàng nhanh chóng toàn quốc, thanh toán khi nhận hàng (COD), hỗ trợ kiểm tra hàng.</p>
+                    <h4 class="text-sm font-bold uppercase tracking-widest mb-3">{{ feat.title }}</h4>
+                    <p class="text-xs text-gray-500 leading-relaxed">{{ feat.description }}</p>
                 </div>
             </div>
         </section>

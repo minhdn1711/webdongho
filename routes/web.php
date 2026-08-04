@@ -22,6 +22,7 @@ Route::get('/', function () {
             ->where('is_hidden', false)
             ->latest()->limit(12)->get(),
         'latest_posts' => \App\Models\Post::where('is_published', true)->latest()->limit(3)->get(),
+        'site_features' => \App\Models\SiteFeature::where('is_active', true)->orderBy('order')->get(),
     ]);
 });
 
@@ -107,6 +108,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Quản lý Thuộc tính sản phẩm
     Route::resource('attributes', App\Http\Controllers\Admin\AttributeController::class)->names('admin.attributes');
     Route::resource('attributes.values', App\Http\Controllers\Admin\AttributeValueController::class)->names('admin.attributes.values');
+
+    // Tính năng nổi bật trang chủ
+    Route::resource('site-features', App\Http\Controllers\Admin\SiteFeatureController::class)->names('admin.site-features');
 
     // Quản lý Đánh giá
     Route::get('/reviews', [App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('admin.reviews.index');
