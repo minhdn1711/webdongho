@@ -5,6 +5,14 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/favicon.ico', function () {
+    $faviconPath = public_path('favicon.ico');
+
+    return file_exists($faviconPath)
+        ? response()->file($faviconPath, ['Content-Type' => 'image/x-icon'])
+        : response()->file(public_path('favicon.svg'), ['Content-Type' => 'image/svg+xml']);
+})->name('favicon');
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),

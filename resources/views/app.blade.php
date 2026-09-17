@@ -7,10 +7,9 @@
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         @php($favicon = \App\Models\Setting::where('key', 'favicon')->value('value'))
-        @if ($favicon)
-            <link rel="icon" href="{{ $favicon }}?v={{ md5($favicon) }}">
-            <link rel="apple-touch-icon" href="{{ $favicon }}?v={{ md5($favicon) }}">
-        @endif
+        <link rel="icon" href="{{ $favicon ?: asset('favicon.svg') }}?v={{ md5($favicon ?: 'default') }}">
+        <link rel="shortcut icon" href="{{ $favicon ?: asset('favicon.svg') }}?v={{ md5($favicon ?: 'default') }}">
+        <link rel="apple-touch-icon" href="{{ $favicon ?: asset('favicon.svg') }}?v={{ md5($favicon ?: 'default') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
