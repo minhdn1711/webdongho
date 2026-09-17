@@ -2,6 +2,8 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import RichEditor from '@/Components/RichEditor.vue';
+import MediaLibrary from '@/Components/MediaLibrary.vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     post: Object
@@ -14,8 +16,15 @@ const form = useForm({
     is_published: props.post.is_published,
 });
 
+const showMediaLibrary = ref(false);
+
 const submit = () => {
     form.put(route('admin.posts.update', props.post.id));
+};
+
+const handleImageSelect = (image) => {
+    form.image = image.url;
+    showMediaLibrary.value = false;
 };
 </script>
 
@@ -115,13 +124,18 @@ const submit = () => {
                             </div>
                             <div>
                                 <label class="text-[11px] text-[#8c8f94] uppercase tracking-wider block mb-1">Nhập URL hình ảnh</label>
-                                <input v-model="form.image" type="text" class="w-full border-[#8c8f94] rounded text-[12px] py-1 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="https://..." />
-                                <p class="text-[11px] text-[#8c8f94] mt-1.5">Tải ảnh lên mục "Hình ảnh" trước, sau đó copy link dán vào đây.</p>
+                                <div class="flex gap-2">
+                                    <input v-model="form.image" type="text" class="flex-1 min-w-0 border-[#8c8f94] rounded text-[12px] py-1 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="https://..." />
+                                    <button type="button" @click="showMediaLibrary = true" class="shrink-0 px-2 py-1 text-[12px] text-[#2271b1] border border-[#2271b1] rounded hover:bg-[#f0f6fc]">Thư viện</button>
+                                </div>
+                                <p class="text-[11px] text-[#8c8f94] mt-1.5">Chọn ảnh từ thư viện hoặc nhập URL hình ảnh.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </form>
+
+        <MediaLibrary :show="showMediaLibrary" @close="showMediaLibrary = false" @select="handleImageSelect" />
     </AdminLayout>
 </template>
