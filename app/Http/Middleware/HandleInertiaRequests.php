@@ -42,6 +42,7 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+            'csrf_token' => csrf_token(),
             'settings' => Setting::pluck('value', 'key')->all(),
             'menus' => fn () => Menu::with(['category', 'product', 'post'])
                 ->where('is_active', true)

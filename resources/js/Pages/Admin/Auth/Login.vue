@@ -1,23 +1,14 @@
 <script setup>
 import InputError from '@/Components/InputError.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
     status: String,
     error: String,
 });
 
-const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
-});
-
-const submit = () => {
-    form.post(route('admin.login.store'), {
-        onFinish: () => form.reset('password'),
-    });
-};
+const page = usePage();
+const errors = page.props.errors || {};
 </script>
 
 <template>
@@ -44,11 +35,12 @@ const submit = () => {
                     {{ error }}
                 </div>
 
-                <form @submit.prevent="submit" class="space-y-5">
+                <form :action="route('admin.login.store')" method="POST" class="space-y-5">
+                    <input type="hidden" name="_token" :value="page.props.csrf_token" />
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
                         <input
-                            v-model="form.email"
+                            name="email"
                             type="email"
                             required
                             autofocus
@@ -56,26 +48,27 @@ const submit = () => {
                             class="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                             placeholder="admin@example.com"
                         />
-                        <InputError class="mt-1.5" :message="form.errors.email" />
+                        <InputError class="mt-1.5" :message="errors.email" />
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1.5">Mật khẩu</label>
                         <input
-                            v-model="form.password"
+                            name="password"
                             type="password"
                             required
                             autocomplete="current-password"
                             class="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                             placeholder="••••••••"
                         />
-                        <InputError class="mt-1.5" :message="form.errors.password" />
+                        <InputError class="mt-1.5" :message="errors.password" />
                     </div>
 
                     <div class="flex items-center">
                         <input
                             id="remember"
-                            v-model="form.remember"
+                            name="remember"
+                            value="1"
                             type="checkbox"
                             class="rounded border-slate-600 text-orange-500 focus:ring-orange-500 bg-slate-900"
                         />
@@ -84,10 +77,9 @@ const submit = () => {
 
                     <button
                         type="submit"
-                        :disabled="form.processing"
                         class="w-full py-2.5 px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
                     >
-                        {{ form.processing ? 'Đang xử lý...' : 'Đăng nhập' }}
+                        Đăng nhập
                     </button>
                 </form>
             </div>
