@@ -50,19 +50,20 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required',
-            'image' => 'nullable|string',
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string'],
+            'image' => ['nullable', 'string', 'max:2048'],
+            'is_published' => ['nullable', 'boolean'],
         ]);
 
-        $post->update([
-            'title' => $request->title,
-            'slug' => Str::slug($request->title) . '-' . $post->id,
-            'content' => $request->content,
-            'image' => $request->filled('image') ? $request->input('image') : null,
-            'is_published' => $request->boolean('is_published'),
-        ]);
+        $post->forceFill([
+            'title' => $data['title'],
+            'slug' => Str::slug($data['title']) . '-' . $post->id,
+            'content' => $data['content'],
+            'image' => filled($data['image'] ?? null) ? $data['image'] : null,
+            'is_published' => (bool) ($data['is_published'] ?? false),
+        ])->save();
 
         return redirect()->route('admin.posts.index')->with('success', 'Cập nhật bài viết thành công!');
     }
