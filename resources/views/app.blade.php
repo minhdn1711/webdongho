@@ -6,6 +6,12 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        @php($favicon = \App\Models\Setting::where('key', 'favicon')->value('value'))
+        @if ($favicon)
+            <link rel="icon" href="{{ $favicon }}?v={{ md5($favicon) }}">
+            <link rel="apple-touch-icon" href="{{ $favicon }}?v={{ md5($favicon) }}">
+        @endif
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
