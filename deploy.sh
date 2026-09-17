@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
 
 # Script cập nhật dự án trên VPS - webdongho
 
 echo ">>> Đang cập nhật mã nguồn từ GitHub..."
-git pull origin main
+git pull --ff-only origin main
 
 echo ">>> Dừng containers (giữ MySQL chạy)..."
 docker compose -f docker-compose.prod.yml stop app web queue scheduler
@@ -23,12 +24,13 @@ echo "MySQL đã sẵn sàng!"
 
 docker compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
 
+echo ">>> Đang build lại Assets (Vite)..."
+docker run --rm -v "$(pwd):/var/www" -w /var/www node:20-alpine sh -c "npm install && npm run build"
+
 echo ">>> Đang tối ưu hóa Laravel..."
+docker compose -f docker-compose.prod.yml exec -T app php artisan optimize:clear
 docker compose -f docker-compose.prod.yml exec -T app php artisan optimize
 docker compose -f docker-compose.prod.yml exec -T app php artisan view:cache
 docker compose -f docker-compose.prod.yml exec -T app php artisan config:cache
-
-echo ">>> Đang build lại Assets (Vite)..."
-docker run --rm -v $(pwd):/var/www -w /var/www node:20-alpine sh -c "npm install && npm run build"
 
 echo ">>> CẬP NHẬT HOÀN TẤT!"
