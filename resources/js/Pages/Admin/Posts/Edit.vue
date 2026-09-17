@@ -123,12 +123,11 @@ const handleImageSelect = (image) => {
                                 </button>
                             </div>
                             <div>
-                                <label class="text-[11px] text-[#8c8f94] uppercase tracking-wider block mb-1">Nhập URL hình ảnh</label>
-                                <div class="flex gap-2">
-                                    <input v-model="form.image" type="text" class="flex-1 min-w-0 border-[#8c8f94] rounded text-[12px] py-1 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]" placeholder="https://..." />
-                                    <button type="button" @click="showMediaLibrary = true" class="shrink-0 px-2 py-1 text-[12px] text-[#2271b1] border border-[#2271b1] rounded hover:bg-[#f0f6fc]">Thư viện</button>
-                                </div>
-                                <p class="text-[11px] text-[#8c8f94] mt-1.5">Chọn ảnh từ thư viện hoặc nhập URL hình ảnh.</p>
+                                <button type="button" @click="showMediaLibrary = true" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-[13px] font-medium text-[#2271b1] border border-dashed border-[#2271b1] rounded hover:bg-[#f0f6fc]">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    {{ form.image ? 'Chọn ảnh khác' : 'Chọn ảnh từ thư viện' }}
+                                </button>
+                                <p class="text-[11px] text-[#8c8f94] mt-1.5">Chọn ảnh đã tải lên trong mục Hình ảnh.</p>
                             </div>
                         </div>
                     </div>
