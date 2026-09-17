@@ -57,6 +57,22 @@ Route::redirect('/admin', '/admin/dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
+        $startDate = now()->startOfDay()->subDays(6);
+        $recentOrders = \App\Models\Order::where('created_at', '>=', $startDate)
+            ->get(['created_at', 'total_amount', 'status']);
+        $ordersByDate = $recentOrders->groupBy(fn ($order) => $order->created_at->format('Y-m-d'));
+
+        $chartData = collect(range(6, 0))->map(function ($daysAgo) use ($ordersByDate) {
+            $date = now()->startOfDay()->subDays($daysAgo);
+            $orders = $ordersByDate->get($date->format('Y-m-d'), collect());
+
+            return [
+                'label' => $date->format('d/m'),
+                'orders' => $orders->count(),
+                'revenue' => $orders->where('status', 'completed')->sum('total_amount'),
+            ];
+        })->values();
+
         $totalOrders = \App\Models\Order::count();
         $totalProducts = \App\Models\Product::count();
         $totalRevenue = \App\Models\Order::where('status', 'completed')->sum('total_amount');
@@ -66,6 +82,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
                 'total_orders' => $totalOrders,
                 'total_products' => $totalProducts,
                 'total_revenue' => $totalRevenue,
+                'chart' => $chartData,
             ]
         ]);
     })->name('dashboard');

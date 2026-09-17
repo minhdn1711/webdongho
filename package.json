@@ -20,6 +20,8 @@
     },
     "dependencies": {
         "@vueup/vue-quill": "^1.2.0",
-        "lodash": "^4.18.1"
+        "chart.js": "^4.5.1",
+        "lodash": "^4.18.1",
+        "vue-chartjs": "^5.3.4"
     }
 }
