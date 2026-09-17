@@ -71,7 +71,7 @@ const deleteMenu = () => {
     <AdminLayout>
         <template #header>
             <div class="flex justify-between items-center">
-                <h1 class="text-[23px] font-normal text-[#1d2327]">Menu
+                <h1 class="text-[23px] font-normal text-[#1d2327]">Menu Header
                     <button @click="openCreateModal" class="text-[13px] font-medium text-[#2271b1] ml-2">Thêm mới</button>
                 </h1>
             </div>
@@ -100,7 +100,7 @@ const deleteMenu = () => {
                         <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ menu.sort_order }}</td>
                         <td class="px-3 py-2 text-[13px]" :class="menu.is_active ? 'text-green-600' : 'text-gray-400'">{{ menu.is_active ? 'Đang hiển thị' : 'Đang ẩn' }}</td>
                     </tr>
-                    <tr v-if="!menus.length"><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có menu nào.</td></tr>
+                    <tr v-if="!menus.length"><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có mục menu nào.</td></tr>
                 </tbody>
             </table>
         </div>

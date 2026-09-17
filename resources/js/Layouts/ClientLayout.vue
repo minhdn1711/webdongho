@@ -82,16 +82,27 @@ const formatPrice = (price) => {
         <!-- Fixed site header -->
         <div class="fixed inset-x-0 top-0 z-50">
             <!-- Top Bar -->
-            <div class="bg-[#d10000] text-white text-[10px] md:text-xs py-2 px-4 flex justify-between items-center overflow-hidden">
-                <div class="hidden md:block truncate">{{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}</div>
-                <div class="flex gap-2 md:gap-4 mx-auto md:mx-0 font-bold uppercase tracking-tighter md:tracking-widest flex-wrap justify-center">
-                    <span>Hotline: {{ settings.contact_phone || '1900 2697' }}</span>
-                    <div class="flex gap-2">
-                        <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="hover:underline">Tài khoản</Link>
+            <div class="bg-[#d10000] text-white px-4 md:px-6 py-2.5 min-h-10 flex items-center justify-center md:justify-between overflow-hidden">
+                <div class="hidden md:block max-w-[45%] truncate text-[11px] font-medium tracking-wide">
+                    {{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}
+                </div>
+                <div class="flex items-center gap-3 md:gap-5 text-[10px] md:text-xs font-bold uppercase tracking-[0.12em] md:tracking-[0.16em] whitespace-nowrap">
+                    <a :href="`tel:${settings.contact_phone || '1900 2697'}`" class="inline-flex items-center gap-1.5 hover:text-red-100 transition-colors">
+                        <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 15.72V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        <span>{{ settings.contact_phone || '1900 2697' }}</span>
+                    </a>
+                    <span class="h-4 w-px bg-white/40" aria-hidden="true"></span>
+                    <div class="inline-flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM5 21a7 7 0 0114 0" />
+                        </svg>
+                        <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="hover:text-red-100 transition-colors">Tài khoản</Link>
                         <template v-else>
-                            <Link :href="route('login')" class="hover:underline">Đăng nhập</Link>
-                            <span>/</span>
-                            <Link :href="route('register')" class="hover:underline">Đăng ký</Link>
+                            <Link :href="route('login')" class="hover:text-red-100 transition-colors">Đăng nhập</Link>
+                            <span class="text-white/70">/</span>
+                            <Link :href="route('register')" class="hover:text-red-100 transition-colors">Đăng ký</Link>
                         </template>
                     </div>
                 </div>

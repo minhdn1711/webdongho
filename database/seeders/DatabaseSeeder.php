@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             WatchSeeder::class,
             PostSeeder::class,
+            MenuSeeder::class,
         ]);
 
         User::updateOrCreate(
