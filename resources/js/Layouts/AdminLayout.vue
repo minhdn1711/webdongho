@@ -72,6 +72,13 @@ const menuItems = [
 const openMenus = ref({ 'Sản phẩm': false });
 const toggleMenu = (name) => { openMenus.value[name] = !openMenus.value[name]; };
 const isChildActive = (item) => item.children?.some(c => page.url.startsWith(c.url));
+const itemGroups = {
+    Dashboard: 'Tổng quan',
+    'Sản phẩm': 'Catalog',
+    'Kho hàng': 'Bán hàng',
+    'Tin tức': 'Nội dung',
+    'Cấu hình': 'Hệ thống',
+};
 </script>
 
 <template>
@@ -92,6 +99,9 @@ const isChildActive = (item) => item.children?.some(c => page.url.startsWith(c.u
             <!-- Navigation Menu -->
             <nav class="flex-1 mt-4 overflow-y-auto no-scrollbar">
                 <template v-for="item in menuItems" :key="item.name">
+                    <div v-if="itemGroups[item.name]" v-show="isSidebarOpen" class="px-4 pt-5 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">
+                        {{ itemGroups[item.name] }}
+                    </div>
                     <!-- Item có submenu -->
                     <template v-if="item.children">
                         <button

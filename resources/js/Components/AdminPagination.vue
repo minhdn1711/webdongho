@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-    <div v-if="paginator.last_page > 1" class="mt-4 flex flex-wrap items-center justify-between gap-3">
+    <div v-if="paginator.last_page > 1" class="mt-3 bg-white border border-[#c3c4c7] shadow-sm px-3 py-3 flex flex-wrap items-center justify-between gap-3">
         <p class="text-[13px] text-[#50575e]">
             Hiển thị {{ paginator.from }}–{{ paginator.to }} / {{ paginator.total }} {{ label }}
         </p>

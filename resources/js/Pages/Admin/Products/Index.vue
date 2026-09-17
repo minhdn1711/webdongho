@@ -1,5 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import AdminPagination from '@/Components/AdminPagination.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
@@ -139,31 +140,7 @@ const toggleHide = (product) => {
             </table>
         </div>
 
-        <!-- Pagination -->
-        <div v-if="products.last_page > 1" class="mt-4 flex items-center justify-between">
-            <p class="text-[13px] text-[#50575e]">
-                Hiển thị {{ products.from }}–{{ products.to }} / {{ products.total }} sản phẩm
-            </p>
-            <div class="flex items-center gap-1">
-                <template v-for="link in products.links" :key="link.label">
-                    <Link
-                        v-if="link.url"
-                        :href="link.url"
-                        v-html="link.label"
-                        preserve-scroll
-                        class="px-3 py-1 text-[13px] border rounded transition"
-                        :class="link.active
-                            ? 'bg-[#2271b1] text-white border-[#2271b1]'
-                            : 'bg-white text-[#2271b1] border-[#c3c4c7] hover:bg-[#f0f0f1]'"
-                    />
-                    <span
-                        v-else
-                        v-html="link.label"
-                        class="px-3 py-1 text-[13px] border border-[#c3c4c7] rounded text-[#8c8f94] bg-[#f6f7f7] cursor-default"
-                    />
-                </template>
-            </div>
-        </div>
+        <AdminPagination :paginator="products" label="sản phẩm" />
 
         <!-- Delete Confirmation Modal -->
         <div v-if="productToDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
