@@ -69,24 +69,26 @@ const formatPrice = (price) => {
                 :src="`https://www.facebook.com/tr?id=${settings.meta_pixel_id}&ev=PageView&noscript=1`" />
         </noscript>
 
-        <!-- Top Bar -->
-        <div class="bg-[#d10000] text-white text-[10px] md:text-xs py-2 px-4 flex justify-between items-center overflow-hidden">
-            <div class="hidden md:block truncate">{{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}</div>
-            <div class="flex gap-2 md:gap-4 mx-auto md:mx-0 font-bold uppercase tracking-tighter md:tracking-widest flex-wrap justify-center">
-                <span>Hotline: {{ settings.contact_phone || '1900 2697' }}</span>
-                <div class="flex gap-2">
-                    <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="hover:underline">Tài khoản</Link>
-                    <template v-else>
-                        <Link :href="route('login')" class="hover:underline">Đăng nhập</Link>
-                        <span>/</span>
-                        <Link :href="route('register')" class="hover:underline">Đăng ký</Link>
-                    </template>
+        <!-- Fixed site header -->
+        <div class="fixed inset-x-0 top-0 z-50">
+            <!-- Top Bar -->
+            <div class="bg-[#d10000] text-white text-[10px] md:text-xs py-2 px-4 flex justify-between items-center overflow-hidden">
+                <div class="hidden md:block truncate">{{ settings.site_description || 'Chào mừng bạn đến với cửa hàng của chúng tôi!' }}</div>
+                <div class="flex gap-2 md:gap-4 mx-auto md:mx-0 font-bold uppercase tracking-tighter md:tracking-widest flex-wrap justify-center">
+                    <span>Hotline: {{ settings.contact_phone || '1900 2697' }}</span>
+                    <div class="flex gap-2">
+                        <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="hover:underline">Tài khoản</Link>
+                        <template v-else>
+                            <Link :href="route('login')" class="hover:underline">Đăng nhập</Link>
+                            <span>/</span>
+                            <Link :href="route('register')" class="hover:underline">Đăng ký</Link>
+                        </template>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Header -->
-        <header class="border-b sticky top-0 bg-white z-50 shadow-sm">
+            <!-- Header -->
+            <header class="border-b bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
                 <!-- Mobile Menu Toggle -->
                 <button @click="isMobileMenuOpen = true" class="lg:hidden p-2 hover:text-[#d10000]">
@@ -137,7 +139,8 @@ const formatPrice = (price) => {
                     </Link>
                 </div>
             </div>
-        </header>
+            </header>
+        </div>
 
         <!-- Mobile Menu Overlay -->
         <Transition
@@ -193,7 +196,7 @@ const formatPrice = (price) => {
         </Transition>
 
         <!-- Main Content -->
-        <main>
+        <main class="pt-24 md:pt-28">
             <slot />
         </main>
 
