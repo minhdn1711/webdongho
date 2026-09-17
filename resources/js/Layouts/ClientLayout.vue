@@ -5,6 +5,16 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 
 const page = usePage();
 const settings = computed(() => page.props.settings || {});
+const menus = computed(() => {
+    const configuredMenus = page.props.menus || [];
+    return configuredMenus.length ? configuredMenus : [
+        { id: 'home', label: 'Trang Chủ', url: '/' },
+        { id: 'women', label: 'Đồng Hồ Nữ', url: route('category.show', 'dong-ho-nu') },
+        { id: 'men', label: 'Đồng Hồ Nam', url: route('category.show', 'dong-ho-nam') },
+        { id: 'products', label: 'Sản phẩm', url: route('category.show') },
+        { id: 'news', label: 'Tin tức', url: route('news.index') },
+    ];
+});
 const isMobileMenuOpen = ref(false);
 const searchQuery = ref('');
 const showBackToTop = ref(false);
@@ -105,11 +115,7 @@ const formatPrice = (price) => {
 
                 <!-- Navigation (Desktop) -->
                 <nav class="hidden lg:flex space-x-8 text-sm font-bold uppercase tracking-widest">
-                    <Link :href="'/'" class="hover:text-[#d10000] transition" :class="{ 'text-[#d10000]': $page.url === '/' }">Trang Chủ</Link>
-                    <Link :href="route('category.show', 'dong-ho-nu')" class="hover:text-[#d10000] transition" :class="{ 'text-[#d10000]': $page.url.includes('dong-ho-nu') }">Đồng Hồ Nữ</Link>
-                    <Link :href="route('category.show', 'dong-ho-nam')" class="hover:text-[#d10000] transition" :class="{ 'text-[#d10000]': $page.url.includes('dong-ho-nam') }">Đồng Hồ Nam</Link>
-                    <Link :href="route('category.show')" class="hover:text-[#d10000] transition" :class="{ 'text-[#d10000]': $page.url === '/category' }">Sản phẩm</Link>
-                    <Link :href="route('news.index')" class="hover:text-[#d10000] transition" :class="{ 'text-[#d10000]': $page.url.includes('/news') }">Tin tức</Link>
+                    <Link v-for="menu in menus" :key="menu.id" :href="menu.url" :target="menu.open_new_tab ? '_blank' : undefined" class="hover:text-[#d10000] transition" :class="{ 'text-[#d10000]': $page.url === menu.url }">{{ menu.label }}</Link>
                 </nav>
 
                 <!-- Icons -->
@@ -177,13 +183,9 @@ const formatPrice = (price) => {
                             </div>
                         </div>
 
-                        <Link href="/" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Trang Chủ</Link>
-                        <Link :href="route('category.show', 'dong-ho-nu')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Đồng Hồ Nữ</Link>
-                        <Link :href="route('category.show', 'dong-ho-nam')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Đồng Hồ Nam</Link>
-                        <Link :href="route('category.show')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Tất Cả Sản Phẩm</Link>
+                        <Link v-for="menu in menus" :key="`mobile-${menu.id}`" :href="menu.url" :target="menu.open_new_tab ? '_blank' : undefined" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">{{ menu.label }}</Link>
                         <Link v-if="$page.props.auth.user" :href="route('wishlist.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Yêu thích</Link>
                         <Link :href="route('cart.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Giỏ Hàng</Link>
-                        <Link :href="route('news.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Tin tức & Blog</Link>
                     </div>
                     <div class="p-6 bg-gray-50 border-t space-y-4">
                         <div class="flex items-center gap-3 text-gray-600">

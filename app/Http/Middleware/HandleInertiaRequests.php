@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Setting;
+use App\Models\Menu;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -42,6 +43,19 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'settings' => Setting::pluck('value', 'key')->all(),
+            'menus' => fn () => Menu::with(['category', 'product', 'post'])
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (Menu $menu) => [
+                    'id' => $menu->id,
+                    'label' => $menu->label,
+                    'url' => $menu->resolved_url,
+                    'open_new_tab' => $menu->open_new_tab,
+                ])
+                ->filter(fn (array $menu) => filled($menu['url']))
+                ->values(),
             'pancake_configured' => !!(\Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_api_token') && \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_shop_id')),
             'flash' => [
                 'success' => $request->session()->get('success'),

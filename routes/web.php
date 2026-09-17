@@ -79,6 +79,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Quản lý danh mục
     Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class)->names('admin.categories');
 
+    // Quản lý menu
+    Route::resource('menus', App\Http\Controllers\Admin\MenuController::class)->only(['index', 'store', 'update', 'destroy'])->names('admin.menus');
+
     // Quản lý kho hàng
     Route::get('/stock', [App\Http\Controllers\Admin\StockController::class, 'index'])->name('admin.stock.index');
     Route::patch('/stock/{product}', [App\Http\Controllers\Admin\StockController::class, 'update'])->name('admin.stock.update');
