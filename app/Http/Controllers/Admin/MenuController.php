@@ -15,7 +15,7 @@ class MenuController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Menus/Index', [
-            'menus' => Menu::with(['category', 'product', 'post'])->orderBy('sort_order')->orderBy('id')->get(),
+            'menus' => Menu::with(['category', 'product', 'post'])->orderBy('sort_order')->orderBy('id')->paginate(20)->withQueryString(),
             'categories' => Category::orderBy('name')->get(['id', 'name']),
             'products' => Product::where('is_hidden', false)->orderBy('name')->get(['id', 'name']),
             'posts' => Post::where('is_published', true)->latest()->get(['id', 'title']),

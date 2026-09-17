@@ -2,9 +2,10 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import AdminPagination from '@/Components/AdminPagination.vue';
 
 defineProps({
-    posts: Array
+    posts: Object
 });
 
 const postToDelete = ref(null);
@@ -48,7 +49,7 @@ const deletePost = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="post in posts" :key="post.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
+                    <tr v-for="post in posts.data" :key="post.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
                         <td class="px-3 py-2">
                             <img :src="post.image || 'https://via.placeholder.com/150'" class="w-16 h-10 object-cover rounded border border-[#c3c4c7]" />
                         </td>
@@ -75,12 +76,14 @@ const deletePost = () => {
                             {{ new Date(post.created_at).toLocaleDateString('vi-VN') }}
                         </td>
                     </tr>
-                    <tr v-if="!posts.length">
+                    <tr v-if="!posts.data.length">
                         <td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có bài viết nào.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <AdminPagination :paginator="posts" label="bài viết" />
 
         <!-- Delete Confirmation Modal -->
         <div v-if="postToDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">

@@ -2,9 +2,10 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import AdminPagination from '@/Components/AdminPagination.vue';
 
 const props = defineProps({
-    banners: Array,
+    banners: Object,
 });
 
 const bannerToDelete = ref(null);
@@ -55,7 +56,7 @@ const toggleActive = (banner) => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="banner in banners" :key="banner.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
+                    <tr v-for="banner in banners.data" :key="banner.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
                         <td class="px-3 py-2">
                             <img :src="banner.image_url" class="w-24 h-12 object-cover rounded border border-[#c3c4c7]" />
                         </td>
@@ -83,12 +84,14 @@ const toggleActive = (banner) => {
                             </button>
                         </td>
                     </tr>
-                    <tr v-if="!banners.length">
+                    <tr v-if="!banners.data.length">
                         <td colspan="5" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có banner nào.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <AdminPagination :paginator="banners" label="banner" />
 
         <!-- Delete Confirmation Modal -->
         <div v-if="bannerToDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">

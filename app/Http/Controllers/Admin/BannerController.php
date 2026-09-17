@@ -13,7 +13,8 @@ class BannerController extends Controller
 {
     public function index()
     {
-        $banners = Banner::orderBy('order')->get()->map(function($banner) {
+        $banners = Banner::orderBy('order')->paginate(20)->withQueryString();
+        $banners->getCollection()->transform(function($banner) {
             $banner->image_url = Storage::url($banner->image);
             return $banner;
         });

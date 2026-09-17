@@ -2,9 +2,10 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import AdminPagination from '@/Components/AdminPagination.vue';
 
 const props = defineProps({
-    menus: { type: Array, default: () => [] },
+    menus: { type: Object, default: () => ({ data: [], last_page: 1 }) },
     categories: { type: Array, default: () => [] },
     products: { type: Array, default: () => [] },
     posts: { type: Array, default: () => [] },
@@ -88,7 +89,7 @@ const deleteMenu = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="menu in menus" :key="menu.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] group">
+                    <tr v-for="menu in menus.data" :key="menu.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] group">
                         <td class="px-3 py-2 text-[13px] font-semibold text-[#2271b1]">
                             {{ menu.label }}
                             <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 flex gap-1 text-[#8c8f94]">
@@ -100,10 +101,12 @@ const deleteMenu = () => {
                         <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ menu.sort_order }}</td>
                         <td class="px-3 py-2 text-[13px]" :class="menu.is_active ? 'text-green-600' : 'text-gray-400'">{{ menu.is_active ? 'Đang hiển thị' : 'Đang ẩn' }}</td>
                     </tr>
-                    <tr v-if="!menus.length"><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có mục menu nào.</td></tr>
+                    <tr v-if="!menus.data.length"><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có mục menu nào.</td></tr>
                 </tbody>
             </table>
         </div>
+
+        <AdminPagination :paginator="menus" label="mục menu" />
 
         <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
             <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">

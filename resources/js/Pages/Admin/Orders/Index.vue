@@ -1,9 +1,10 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import AdminPagination from '@/Components/AdminPagination.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
 const props = defineProps({
-    orders: Array,
+    orders: Object,
 });
 
 const formatPrice = (price) => {
@@ -71,7 +72,7 @@ const updateStatus = (orderId, status) => {
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200 text-sm">
-                                <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition">
+                                <tr v-for="order in orders.data" :key="order.id" class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4 whitespace-nowrap font-bold text-indigo-600">
                                         <Link :href="route('admin.orders.show', order.id)">{{ order.order_number }}</Link>
                                     </td>
@@ -110,11 +111,12 @@ const updateStatus = (orderId, status) => {
                             </tbody>
                         </table>
 
-                        <div v-if="orders.length === 0" class="text-center py-12 text-gray-500 italic">
+                        <div v-if="orders.data.length === 0" class="text-center py-12 text-gray-500 italic">
                             Chưa có đơn hàng nào.
                         </div>
                     </div>
                 </div>
+                <AdminPagination :paginator="orders" label="đơn hàng" />
             </div>
         </div>
     </AdminLayout>

@@ -2,8 +2,9 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import AdminPagination from '@/Components/AdminPagination.vue';
 
-const props = defineProps({ features: Array });
+const props = defineProps({ features: Object });
 
 const featureToDelete = ref(null);
 
@@ -44,10 +45,10 @@ const toggleActive = (feature) => {
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        <tr v-if="features.length === 0">
+                        <tr v-if="features.data.length === 0">
                             <td colspan="6" class="text-center py-10 text-gray-400">Chưa có tính năng nào.</td>
                         </tr>
-                        <tr v-for="f in features" :key="f.id" class="hover:bg-gray-50 group">
+                        <tr v-for="f in features.data" :key="f.id" class="hover:bg-gray-50 group">
                             <td class="px-4 py-3 text-gray-500 w-16">{{ f.order }}</td>
                             <td class="px-4 py-3 font-semibold">{{ f.title }}</td>
                             <td class="px-4 py-3 text-gray-500 max-w-xs truncate">{{ f.description }}</td>
@@ -70,6 +71,7 @@ const toggleActive = (feature) => {
                     </tbody>
                 </table>
             </div>
+            <AdminPagination :paginator="features" label="tính năng" />
         </div>
 
         <!-- Delete Modal -->

@@ -1,11 +1,12 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import AdminPagination from '@/Components/AdminPagination.vue';
 import { ref } from 'vue';
 
 const props = defineProps({
-    products: Array,
-    histories: Array,
+    products: Object,
+    histories: Object,
 });
 
 const formatPrice = (price) => {
@@ -85,7 +86,7 @@ const updateStock = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="product in products" :key="product.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
+                    <tr v-for="product in products.data" :key="product.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
                         <td class="px-3 py-2">
                             <img :src="product.image || 'https://via.placeholder.com/60'" class="w-10 h-10 object-cover rounded border border-[#c3c4c7]" />
                         </td>
@@ -111,11 +112,12 @@ const updateStock = () => {
                             <span v-else-if="product.stock <= 5" class="text-[11px] text-[#dba617] ml-1">Sắp hết</span>
                         </td>
                     </tr>
-                    <tr v-if="!products.length">
+                    <tr v-if="!products.data.length">
                         <td colspan="5" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có sản phẩm nào.</td>
                     </tr>
                 </tbody>
             </table>
+            <AdminPagination :paginator="products" label="sản phẩm" />
         </div>
 
         <div v-else class="bg-white border border-[#c3c4c7] shadow-sm animate-fade-in">
@@ -131,7 +133,7 @@ const updateStock = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="log in histories" :key="log.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition">
+                    <tr v-for="log in histories.data" :key="log.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition">
                         <td class="px-3 py-2 text-[12px] text-[#50575e]">{{ formatDate(log.created_at) }}</td>
                         <td class="px-3 py-2">
                             <div class="text-[13px] font-medium text-[#1d2327]">{{ log.product?.name }}</div>
@@ -160,11 +162,12 @@ const updateStock = () => {
                             {{ log.user?.name || 'Hệ thống' }}
                         </td>
                     </tr>
-                    <tr v-if="!histories.length">
+                    <tr v-if="!histories.data.length">
                         <td colspan="6" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có lịch sử giao dịch nào.</td>
                     </tr>
                 </tbody>
             </table>
+            <AdminPagination :paginator="histories" label="giao dịch" />
         </div>
 
         <!-- Stock Adjustment Modal -->

@@ -14,7 +14,8 @@ class CategoryController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Categories/Index', [
-            'categories' => Category::with('parent')->withCount('products')->get()
+            'categories' => Category::with('parent')->withCount('products')->orderBy('name')->paginate(20)->withQueryString(),
+            'categoryOptions' => Category::orderBy('name')->get(['id', 'name', 'parent_id']),
         ]);
     }
 

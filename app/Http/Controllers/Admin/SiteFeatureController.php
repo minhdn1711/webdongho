@@ -12,7 +12,7 @@ class SiteFeatureController extends Controller
     public function index()
     {
         return Inertia::render('Admin/SiteFeatures/Index', [
-            'features' => SiteFeature::orderBy('order')->get(),
+            'features' => SiteFeature::orderBy('order')->paginate(20)->withQueryString(),
         ]);
     }
 

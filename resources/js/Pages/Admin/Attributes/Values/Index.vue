@@ -1,6 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import AdminPagination from '@/Components/AdminPagination.vue';
 
 const props = defineProps({
     attribute: Object,
@@ -63,6 +64,7 @@ const deleteValue = (id) => {
                     </tbody>
                 </table>
             </div>
+            <AdminPagination :paginator="props.values" label="giá trị" />
         </div>
     </AdminLayout>
 </template>

@@ -1,11 +1,13 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import MediaLibrary from '@/Components/MediaLibrary.vue';
+import AdminPagination from '@/Components/AdminPagination.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const props = defineProps({
-    categories: Array,
+    categories: Object,
+    categoryOptions: { type: Array, default: () => [] },
 });
 
 const isModalOpen = ref(false);
@@ -94,7 +96,7 @@ const deleteCategory = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="category in categories" :key="category.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
+                    <tr v-for="category in categories.data" :key="category.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] transition group">
                         <td class="px-3 py-2">
                             <span class="text-[13px] font-semibold text-[#2271b1]">
                                 {{ category.parent_id ? '— ' + category.name : category.name }}
@@ -112,12 +114,14 @@ const deleteCategory = () => {
                         <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ category.slug }}</td>
                         <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ category.products_count }}</td>
                     </tr>
-                    <tr v-if="!categories.length">
+                    <tr v-if="!categories.data.length">
                         <td colspan="3" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có danh mục nào.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <AdminPagination :paginator="categories" label="danh mục" />
 
         <!-- Create/Edit Modal -->
         <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -138,7 +142,7 @@ const deleteCategory = () => {
                         <label class="block text-[12px] font-semibold text-[#1d2327] uppercase tracking-wider mb-1.5">Danh mục cha</label>
                         <select v-model="form.parent_id" class="w-full border-[#8c8f94] rounded text-[13px] py-1.5 focus:border-[#2271b1] focus:ring-1 focus:ring-[#2271b1]">
                             <option value="">— Không có danh mục cha —</option>
-                            <template v-for="cat in categories" :key="cat.id">
+                            <template v-for="cat in categoryOptions" :key="cat.id">
                                 <option v-if="!editingCategory || cat.id !== editingCategory.id" :value="cat.id">
                                     {{ cat.parent_id ? '-- ' + cat.name : cat.name }}
                                 </option>
