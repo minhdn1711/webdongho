@@ -34,8 +34,8 @@ class PostController extends Controller
             'title' => $request->title,
             'slug' => Str::slug($request->title) . '-' . time(),
             'content' => $request->content,
-            'image' => $request->image,
-            'is_published' => $request->has('is_published') ? $request->is_published : true,
+            'image' => $request->filled('image') ? $request->input('image') : null,
+            'is_published' => $request->boolean('is_published', true),
         ]);
 
         return redirect()->route('admin.posts.index')->with('success', 'Tạo bài viết thành công!');
@@ -60,8 +60,8 @@ class PostController extends Controller
             'title' => $request->title,
             'slug' => Str::slug($request->title) . '-' . $post->id,
             'content' => $request->content,
-            'image' => $request->image,
-            'is_published' => $request->is_published,
+            'image' => $request->filled('image') ? $request->input('image') : null,
+            'is_published' => $request->boolean('is_published'),
         ]);
 
         return redirect()->route('admin.posts.index')->with('success', 'Cập nhật bài viết thành công!');
