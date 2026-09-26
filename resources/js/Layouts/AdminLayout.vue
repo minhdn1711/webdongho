@@ -5,7 +5,7 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 
 const page = usePage();
-const settings = computed(() => page.props.settings || {});
+const settings = computed(() => page.props.site || {});
 const showNotification = ref(false);
 const notificationMessage = ref('');
 const notificationType = ref('success'); // 'success' or 'error'

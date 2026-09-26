@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'csrf_token' => csrf_token(),
             'settings' => Setting::pluck('value', 'key')->all(),
+            'site' => Setting::pluck('value', 'key')->only(['logo', 'favicon', 'site_name'])->all(),
             'menus' => fn () => Menu::with(['category', 'product', 'post'])
                 ->where('is_active', true)
                 ->orderBy('sort_order')
