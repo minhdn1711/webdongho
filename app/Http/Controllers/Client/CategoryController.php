@@ -56,8 +56,27 @@ class CategoryController extends Controller
         return Inertia::render('Client/Category/Show', [
             'category' => $currentCategory,
             'products' => $query->paginate(12)->withQueryString(),
-            'categories' => Category::all(),
+            'categories' => $this->categoryTree(),
             'filters' => $request->only(['search', 'min_price', 'max_price', 'sort']),
         ]);
+    }
+
+    private function categoryTree(): array
+    {
+        $all = Category::orderBy('name')->get(['id', 'name', 'slug', 'parent_id']);
+
+        $build = function ($parentId) use (&$build, $all) {
+            return $all->where('parent_id', $parentId)
+                ->map(fn (Category $category) => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'children' => $build($category->id),
+                ])
+                ->values()
+                ->all();
+        };
+
+        return $build(null);
     }
 }

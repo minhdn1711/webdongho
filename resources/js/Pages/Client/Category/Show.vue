@@ -2,6 +2,7 @@
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ProductCard from '@/Components/ProductCard.vue';
+import CategoryTreeItem from '@/Components/CategoryTreeItem.vue';
 import { ref, watch, computed, inject } from 'vue';
 import debounce from 'lodash/debounce';
 
@@ -35,6 +36,13 @@ const filter = () => {
 watch([search, minPrice, maxPrice, sort], debounce(() => {
     filter();
 }, 500));
+
+const pageLabel = (link, index) => {
+    const last = props.products.links.length - 1;
+    if (index === 0) return '&laquo; Trước';
+    if (index === last) return 'Sau &raquo;';
+    return link.label;
+};
 
 </script>
 
@@ -71,20 +79,13 @@ watch([search, minPrice, maxPrice, sort], debounce(() => {
                         <!-- Categories -->
                         <div>
                             <h3 class="text-sm font-bold uppercase tracking-widest mb-4 border-b pb-2">Danh mục</h3>
-                            <ul class="space-y-2 text-sm">
-                                <li>
-                                    <Link 
-                                        :href="route('category.show')" 
-                                        :class="!category ? 'text-[#d10000] font-bold' : 'text-gray-600 hover:text-[#d10000]'"
-                                    >Tất cả sản phẩm</Link>
-                                </li>
-                                <li v-for="cat in categories" :key="cat.id">
-                                    <Link 
-                                        :href="route('category.show', cat.slug)" 
-                                        :class="category?.id === cat.id ? 'text-[#d10000] font-bold' : 'text-gray-600 hover:text-[#d10000]'"
-                                    >{{ cat.name }}</Link>
-                                </li>
-                            </ul>
+                            <div class="text-sm space-y-2">
+                                <Link
+                                    :href="route('category.show')"
+                                    :class="!category ? 'text-[#d10000] font-bold' : 'text-gray-600 hover:text-[#d10000]'"
+                                >Tất cả sản phẩm</Link>
+                                <CategoryTreeItem :nodes="categories" :active-id="category?.id ?? null" />
+                            </div>
                         </div>
 
                         <!-- Price Range -->
@@ -121,11 +122,11 @@ watch([search, minPrice, maxPrice, sort], debounce(() => {
                         </div>
 
                         <nav v-if="products.last_page > 1" class="mt-10 flex flex-wrap items-center justify-center gap-2">
-                            <template v-for="link in products.links" :key="link.label">
+                            <template v-for="(link, index) in products.links" :key="link.label">
                                 <Link
                                     v-if="link.url"
                                     :href="link.url"
-                                    v-html="link.label"
+                                    v-html="pageLabel(link, index)"
                                     preserve-scroll
                                     class="min-w-[2.25rem] px-3 py-1.5 text-sm text-center border transition"
                                     :class="link.active
@@ -134,7 +135,7 @@ watch([search, minPrice, maxPrice, sort], debounce(() => {
                                 />
                                 <span
                                     v-else
-                                    v-html="link.label"
+                                    v-html="pageLabel(link, index)"
                                     class="min-w-[2.25rem] px-3 py-1.5 text-sm text-center border border-gray-200 text-gray-300 bg-gray-50"
                                 />
                             </template>
