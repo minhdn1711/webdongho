@@ -41,9 +41,7 @@ const formatDate = (dateString) => {
 
                         <img v-if="post.image" :src="post.image" class="w-full aspect-[21/9] object-cover mb-10 shadow-lg" />
 
-                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
-                            {{ post.content }}
-                        </div>
+                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed" v-html="post.content"></div>
 
                         <!-- Footer actions -->
                         <div class="mt-16 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6">

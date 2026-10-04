@@ -6,6 +6,11 @@ defineProps({
     posts: Array
 });
 
+const excerpt = (html) => {
+    const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return text.substring(0, 150);
+};
+
 const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
         day: '2-digit',
@@ -40,7 +45,7 @@ const formatDate = (dateString) => {
                             </div>
                             <h3 class="text-lg font-bold mb-4 group-hover:text-[#d10000] transition line-clamp-2">{{ post.title }}</h3>
                             <p class="text-sm text-gray-500 line-clamp-3 mb-6 flex-1">
-                                {{ post.content.substring(0, 150) }}...
+                                {{ excerpt(post.content) }}...
                             </p>
                             <span class="text-xs font-bold uppercase tracking-widest text-[#d10000] flex items-center gap-2">
                                 Đọc thêm
