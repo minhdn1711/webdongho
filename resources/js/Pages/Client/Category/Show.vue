@@ -61,7 +61,7 @@ const pageLabel = (link, index) => {
 
                 <div class="flex flex-col lg:flex-row gap-12">
                     <!-- Filters Sidebar -->
-                    <aside class="w-full lg:w-64 shrink-0 space-y-10">
+                    <aside class="w-full lg:w-64 shrink-0 space-y-10 lg:sticky lg:top-32 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
                         <!-- Search -->
                         <div>
                             <h3 class="text-sm font-bold uppercase tracking-widest mb-4 border-b pb-2">Tìm kiếm</h3>
