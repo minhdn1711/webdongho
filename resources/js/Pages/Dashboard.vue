@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import { Line } from 'vue-chartjs';
 import {
     Chart as ChartJS,
@@ -16,8 +16,50 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 const props = defineProps({
-    stats: Object
+    stats: Object,
+    filters: { type: Object, default: () => ({ range: '7d' }) },
 });
+
+const rangeOptions = [
+    { value: 'today', label: 'Hôm nay' },
+    { value: 'yesterday', label: 'Hôm qua' },
+    { value: '7d', label: '7 ngày' },
+    { value: '30d', label: '30 ngày' },
+    { value: 'this_month', label: 'Tháng này' },
+    { value: 'last_month', label: 'Tháng trước' },
+    { value: 'custom', label: 'Tùy chọn' },
+];
+
+const customFrom = ref(props.filters?.from || '');
+const customTo = ref(props.filters?.to || '');
+
+const rangeLabel = computed(() => {
+    const opt = rangeOptions.find((o) => o.value === props.filters?.range);
+    if (props.filters?.range === 'custom') return `từ ${props.filters.from} đến ${props.filters.to}`;
+    return opt ? opt.label.toLowerCase() : '7 ngày';
+});
+
+const loadRange = (params) => {
+    router.get(route('dashboard'), params, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['stats', 'filters'],
+        replace: true,
+    });
+};
+
+const selectRange = (value) => {
+    if (value === 'custom') {
+        loadRange({ range: 'custom', from: customFrom.value, to: customTo.value });
+        return;
+    }
+    loadRange({ range: value });
+};
+
+const applyCustom = () => {
+    if (!customFrom.value || !customTo.value) return;
+    loadRange({ range: 'custom', from: customFrom.value, to: customTo.value });
+};
 
 const chartData = computed(() => ({
     labels: (props.stats?.chart || []).map((item) => item.label),
@@ -91,8 +133,28 @@ const chartOptions = {
             <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <div>
                     <h3 class="text-lg font-bold text-gray-900">Tình hình kinh doanh</h3>
-                    <p class="text-sm text-gray-500">Đơn hàng và doanh thu trong 7 ngày gần nhất</p>
+                    <p class="text-sm text-gray-500">Đơn hàng và doanh thu {{ rangeLabel }}</p>
                 </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        v-for="opt in rangeOptions"
+                        :key="opt.value"
+                        type="button"
+                        @click="selectRange(opt.value)"
+                        class="px-3 py-1.5 text-sm rounded border transition-colors"
+                        :class="filters?.range === opt.value
+                            ? 'bg-blue-600 border-blue-600 text-white'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'"
+                    >
+                        {{ opt.label }}
+                    </button>
+                </div>
+            </div>
+            <div v-if="filters?.range === 'custom'" class="flex flex-wrap items-center gap-2 mb-4">
+                <input type="date" v-model="customFrom" class="border-gray-300 rounded text-sm py-1.5" />
+                <span class="text-gray-500 text-sm">đến</span>
+                <input type="date" v-model="customTo" class="border-gray-300 rounded text-sm py-1.5" />
+                <button type="button" @click="applyCustom" class="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">Áp dụng</button>
             </div>
             <div class="h-80">
                 <Line :data="chartData" :options="chartOptions" />

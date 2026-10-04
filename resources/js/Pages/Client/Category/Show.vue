@@ -10,7 +10,7 @@ const settings = computed(() => page.props.settings || {});
 
 const props = defineProps({
     category: Object,
-    products: Array,
+    products: Object,
     categories: Array,
     filters: Object,
 });
@@ -113,12 +113,32 @@ watch([search, minPrice, maxPrice, sort], debounce(() => {
                     <div class="flex-1">
                         <div class="flex justify-between items-center mb-8">
                             <h1 class="text-2xl font-bold uppercase italic text-[#d10000]">{{ category ? category.name : 'Tất cả sản phẩm' }}</h1>
-                            <p class="text-sm text-gray-500">Hiển thị {{ products.length }} kết quả</p>
+                            <p class="text-sm text-gray-500">Hiển thị {{ products.total }} kết quả</p>
                         </div>
 
-                        <div v-if="products.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                            <ProductCard v-for="product in products" :key="product.id" :product="product" />
+                        <div v-if="products.data.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <ProductCard v-for="product in products.data" :key="product.id" :product="product" />
                         </div>
+
+                        <nav v-if="products.last_page > 1" class="mt-10 flex flex-wrap items-center justify-center gap-2">
+                            <template v-for="link in products.links" :key="link.label">
+                                <Link
+                                    v-if="link.url"
+                                    :href="link.url"
+                                    v-html="link.label"
+                                    preserve-scroll
+                                    class="min-w-[2.25rem] px-3 py-1.5 text-sm text-center border transition"
+                                    :class="link.active
+                                        ? 'bg-[#d10000] text-white border-[#d10000] font-bold'
+                                        : 'bg-white text-gray-600 border-gray-300 hover:border-[#d10000] hover:text-[#d10000]'"
+                                />
+                                <span
+                                    v-else
+                                    v-html="link.label"
+                                    class="min-w-[2.25rem] px-3 py-1.5 text-sm text-center border border-gray-200 text-gray-300 bg-gray-50"
+                                />
+                            </template>
+                        </nav>
 
                         <div v-else class="text-center py-20 bg-white shadow-sm border border-dashed">
                             <p class="text-gray-500 italic">Không tìm thấy sản phẩm nào phù hợp với bộ lọc của bạn.</p>

@@ -64,22 +64,51 @@ Route::post('/admin/logout', [\App\Http\Controllers\Admin\Auth\AdminLoginControl
 Route::redirect('/admin', '/admin/dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        $startDate = now()->startOfDay()->subDays(6);
-        $recentOrders = \App\Models\Order::where('created_at', '>=', $startDate)
+    Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
+        $range = $request->query('range', '7d');
+        $today = now()->startOfDay();
+
+        try {
+            [$startDate, $endDate] = match ($range) {
+                'today' => [$today->copy(), $today->copy()],
+                'yesterday' => [$today->copy()->subDay(), $today->copy()->subDay()],
+                '30d' => [$today->copy()->subDays(29), $today->copy()],
+                'this_month' => [$today->copy()->startOfMonth(), $today->copy()],
+                'last_month' => [
+                    $today->copy()->subMonthNoOverflow()->startOfMonth(),
+                    $today->copy()->subMonthNoOverflow()->endOfMonth()->startOfDay(),
+                ],
+                'custom' => [
+                    \Illuminate\Support\Carbon::parse($request->query('from'))->startOfDay(),
+                    \Illuminate\Support\Carbon::parse($request->query('to'))->startOfDay(),
+                ],
+                default => [$today->copy()->subDays(6), $today->copy()],
+            };
+        } catch (\Throwable $e) {
+            $range = '7d';
+            [$startDate, $endDate] = [$today->copy()->subDays(6), $today->copy()];
+        }
+
+        if ($startDate->gt($endDate)) {
+            [$startDate, $endDate] = [$endDate, $startDate];
+        }
+        if ($startDate->diffInDays($endDate) > 365) {
+            $startDate = $endDate->copy()->subDays(365);
+        }
+
+        $rangeOrders = \App\Models\Order::whereBetween('created_at', [$startDate, $endDate->copy()->endOfDay()])
             ->get(['created_at', 'total_amount', 'status']);
-        $ordersByDate = $recentOrders->groupBy(fn ($order) => $order->created_at->format('Y-m-d'));
+        $ordersByDate = $rangeOrders->groupBy(fn ($order) => $order->created_at->format('Y-m-d'));
 
-        $chartData = collect(range(6, 0))->map(function ($daysAgo) use ($ordersByDate) {
-            $date = now()->startOfDay()->subDays($daysAgo);
+        $chartData = collect();
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
             $orders = $ordersByDate->get($date->format('Y-m-d'), collect());
-
-            return [
+            $chartData->push([
                 'label' => $date->format('d/m'),
                 'orders' => $orders->count(),
                 'revenue' => $orders->where('status', 'completed')->sum('total_amount'),
-            ];
-        })->values();
+            ]);
+        }
 
         $totalOrders = \App\Models\Order::count();
         $totalProducts = \App\Models\Product::count();
@@ -91,7 +120,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
                 'total_products' => $totalProducts,
                 'total_revenue' => $totalRevenue,
                 'chart' => $chartData,
-            ]
+            ],
+            'filters' => [
+                'range' => $range,
+                'from' => $startDate->format('Y-m-d'),
+                'to' => $endDate->format('Y-m-d'),
+            ],
         ]);
     })->name('dashboard');
 

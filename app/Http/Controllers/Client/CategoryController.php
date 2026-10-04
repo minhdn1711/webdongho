@@ -55,7 +55,7 @@ class CategoryController extends Controller
 
         return Inertia::render('Client/Category/Show', [
             'category' => $currentCategory,
-            'products' => $query->get(),
+            'products' => $query->paginate(12)->withQueryString(),
             'categories' => Category::all(),
             'filters' => $request->only(['search', 'min_price', 'max_price', 'sort']),
         ]);
