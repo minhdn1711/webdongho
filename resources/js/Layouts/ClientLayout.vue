@@ -126,7 +126,29 @@ const formatPrice = (price) => {
 
                 <!-- Navigation (Desktop) -->
                 <nav class="hidden lg:flex space-x-8 text-sm font-bold uppercase tracking-widest">
-                    <Link v-for="menu in menus" :key="menu.id" :href="menu.url" :target="menu.open_new_tab ? '_blank' : undefined" class="hover:text-[#d10000] transition" :class="{ 'text-[#d10000]': $page.url === menu.url }">{{ menu.label }}</Link>
+                    <div v-for="menu in menus" :key="menu.id" class="relative group">
+                        <Link
+                            :href="menu.url || '#'"
+                            :target="menu.open_new_tab ? '_blank' : undefined"
+                            class="flex items-center gap-1 py-2 hover:text-[#d10000] transition"
+                            :class="{ 'text-[#d10000]': $page.url === menu.url }"
+                        >
+                            {{ menu.label }}
+                            <svg v-if="menu.children?.length" class="w-3 h-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </Link>
+                        <div
+                            v-if="menu.children?.length"
+                            class="absolute left-0 top-full min-w-[220px] bg-white shadow-lg border-t-2 border-[#d10000] py-2 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-150 z-40"
+                        >
+                            <Link
+                                v-for="child in menu.children"
+                                :key="child.id"
+                                :href="child.url"
+                                :target="child.open_new_tab ? '_blank' : undefined"
+                                class="block px-5 py-2.5 text-xs font-bold uppercase tracking-widest normal-case text-gray-600 hover:bg-gray-50 hover:text-[#d10000] whitespace-nowrap"
+                            >{{ child.label }}</Link>
+                        </div>
+                    </div>
                 </nav>
 
                 <!-- Icons -->
@@ -194,7 +216,17 @@ const formatPrice = (price) => {
                             </div>
                         </div>
 
-                        <Link v-for="menu in menus" :key="`mobile-${menu.id}`" :href="menu.url" :target="menu.open_new_tab ? '_blank' : undefined" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">{{ menu.label }}</Link>
+                        <div v-for="menu in menus" :key="`mobile-${menu.id}`" class="border-b border-gray-50">
+                            <Link :href="menu.url || '#'" :target="menu.open_new_tab ? '_blank' : undefined" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-50 hover:text-[#d10000]">{{ menu.label }}</Link>
+                            <Link
+                                v-for="child in menu.children"
+                                :key="`mobile-${child.id}`"
+                                :href="child.url"
+                                :target="child.open_new_tab ? '_blank' : undefined"
+                                @click="isMobileMenuOpen = false"
+                                class="flex items-center pl-10 pr-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500 bg-gray-50/60 hover:bg-gray-50 hover:text-[#d10000]"
+                            >{{ child.label }}</Link>
+                        </div>
                         <Link v-if="$page.props.auth.user" :href="route('wishlist.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Yêu thích</Link>
                         <Link :href="route('cart.index')" @click="isMobileMenuOpen = false" class="flex items-center px-6 py-4 text-sm font-bold uppercase tracking-widest border-b border-gray-50 hover:bg-gray-50 hover:text-[#d10000]">Giỏ Hàng</Link>
                     </div>
@@ -283,21 +315,21 @@ const formatPrice = (price) => {
                 <a v-if="settings.contact_phone" :href="'tel:' + settings.contact_phone" 
                    class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition group relative overflow-hidden"
                    :class="settings.contact_phone_icon ? 'bg-transparent' : 'bg-green-500 text-white'">
-                    <img v-if="settings.contact_phone_icon" :src="settings.contact_phone_icon" class="w-full h-full object-cover p-1.5" />
+                    <img v-if="settings.contact_phone_icon" :src="settings.contact_phone_icon" class="w-full h-full object-cover" />
                     <svg v-else class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                     <span class="absolute right-full mr-3 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Gọi ngay: {{ settings.contact_phone }}</span>
                 </a>
                 <a v-if="settings.contact_zalo" :href="settings.contact_zalo" target="_blank" 
                    class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition group relative overflow-hidden"
                    :class="settings.contact_zalo_icon ? 'bg-transparent' : 'bg-[#0068ff] text-white'">
-                    <img v-if="settings.contact_zalo_icon" :src="settings.contact_zalo_icon" class="w-full h-full object-cover p-1.5" />
+                    <img v-if="settings.contact_zalo_icon" :src="settings.contact_zalo_icon" class="w-full h-full object-cover" />
                     <span v-else class="font-bold text-xs italic">Zalo</span>
                     <span class="absolute right-full mr-3 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Chat Zalo</span>
                 </a>
                 <a v-if="settings.contact_messenger" :href="settings.contact_messenger" target="_blank" 
                    class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition group relative overflow-hidden"
                    :class="settings.contact_messenger_icon ? 'bg-transparent' : 'bg-[#0084ff] text-white'">
-                    <img v-if="settings.contact_messenger_icon" :src="settings.contact_messenger_icon" class="w-full h-full object-cover p-1.5" />
+                    <img v-if="settings.contact_messenger_icon" :src="settings.contact_messenger_icon" class="w-full h-full object-cover" />
                     <svg v-else class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.913 1.455 5.51 3.734 7.263.196.15.31.385.31.636 0 .474-.236 1.344-.64 2.228-.086.19.103.38.283.29 1.118-.553 2.164-1.285 2.68-1.57.195-.107.426-.118.63-.03 1.127.487 2.378.76 3.703.76 5.523 0 10-4.145 10-9.258S17.523 2 12 2z" /></svg>
                     <span class="absolute right-full mr-3 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Messenger</span>
                 </a>

@@ -45,19 +45,7 @@ class HandleInertiaRequests extends Middleware
             'csrf_token' => csrf_token(),
             'settings' => Setting::pluck('value', 'key')->all(),
             'site' => Setting::pluck('value', 'key')->only(['logo', 'favicon', 'site_name'])->all(),
-            'menus' => fn () => Menu::with(['category', 'product', 'post'])
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get()
-                ->map(fn (Menu $menu) => [
-                    'id' => $menu->id,
-                    'label' => $menu->label,
-                    'url' => $menu->resolved_url,
-                    'open_new_tab' => $menu->open_new_tab,
-                ])
-                ->filter(fn (array $menu) => filled($menu['url']))
-                ->values(),
+            'menus' => fn () => $this->menuTree(),
             'pancake_configured' => !!(\Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_api_token') && \Modules\PancakeIntegration\Models\PancakeSetting::getValue('pancake_shop_id')),
             'flash' => [
                 'success' => $request->session()->get('success'),
@@ -65,5 +53,32 @@ class HandleInertiaRequests extends Middleware
                 'message' => $request->session()->get('message'),
             ],
         ];
+    }
+
+    private function menuTree(): \Illuminate\Support\Collection
+    {
+        $toLink = fn (Menu $menu) => [
+            'id' => $menu->id,
+            'label' => $menu->label,
+            'url' => $menu->resolved_url,
+            'open_new_tab' => $menu->open_new_tab,
+        ];
+
+        return Menu::with(['category', 'product', 'post', 'children' => fn ($q) => $q->with(['category', 'product', 'post'])->where('is_active', true)])
+            ->whereNull('parent_id')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(function (Menu $menu) use ($toLink) {
+                $children = $menu->children
+                    ->map($toLink)
+                    ->filter(fn (array $child) => filled($child['url']))
+                    ->values();
+
+                return [...$toLink($menu), 'children' => $children];
+            })
+            ->filter(fn (array $menu) => filled($menu['url']) || $menu['children']->isNotEmpty())
+            ->values();
     }
 }

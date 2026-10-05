@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Menu extends Model
 {
     protected $fillable = [
+        'parent_id',
         'label',
         'source_type',
         'source_id',
@@ -22,6 +24,16 @@ class Menu extends Model
         'open_new_tab' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Menu::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Menu::class, 'parent_id')->orderBy('sort_order')->orderBy('id');
+    }
 
     public function category(): BelongsTo
     {

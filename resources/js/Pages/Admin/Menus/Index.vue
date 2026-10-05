@@ -6,6 +6,7 @@ import AdminPagination from '@/Components/AdminPagination.vue';
 
 const props = defineProps({
     menus: { type: Object, default: () => ({ data: [], last_page: 1 }) },
+    parentOptions: { type: Array, default: () => [] },
     categories: { type: Array, default: () => [] },
     products: { type: Array, default: () => [] },
     posts: { type: Array, default: () => [] },
@@ -15,9 +16,13 @@ const isModalOpen = ref(false);
 const editingMenu = ref(null);
 const menuToDelete = ref(null);
 const form = useForm({
-    label: '', source_type: 'category', source_id: '', url: '', sort_order: 0,
+    label: '', parent_id: '', source_type: 'category', source_id: '', url: '', sort_order: 0,
     is_active: true, open_new_tab: false,
 });
+
+// Menu đang sửa mà đã có menu con thì không được chọn làm menu con của menu khác
+const availableParents = (menu) => props.parentOptions.filter((p) => p.id !== menu?.id);
+const canHaveParent = (menu) => !menu || !menu.children_count;
 
 const sourceLabel = (menu) => ({ category: 'Danh mục', product: 'Sản phẩm', post: 'Bài viết', custom: 'Custom link' }[menu.source_type] || menu.source_type);
 const sourceName = (menu) => {
@@ -27,9 +32,10 @@ const sourceName = (menu) => {
     return menu.url;
 };
 
-const openCreateModal = () => {
+const openCreateModal = (parent = null) => {
     editingMenu.value = null;
     form.reset();
+    form.parent_id = parent?.id || '';
     form.source_type = 'category';
     form.is_active = true;
     isModalOpen.value = true;
@@ -38,6 +44,7 @@ const openCreateModal = () => {
 const openEditModal = (menu) => {
     editingMenu.value = menu;
     form.label = menu.label;
+    form.parent_id = menu.parent_id || '';
     form.source_type = menu.source_type;
     form.source_id = menu.source_id || '';
     form.url = menu.url || '';
@@ -89,18 +96,33 @@ const deleteMenu = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="menu in menus.data" :key="menu.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] group">
-                        <td class="px-3 py-2 text-[13px] font-semibold text-[#2271b1]">
-                            {{ menu.label }}
-                            <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 flex gap-1 text-[#8c8f94]">
-                                <button @click="openEditModal(menu)" class="text-[#2271b1]">Sửa</button><span>|</span>
-                                <button @click="menuToDelete = menu" class="text-[#b32d2e]">Xóa</button>
-                            </div>
-                        </td>
-                        <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ sourceLabel(menu) }}: {{ sourceName(menu) }}</td>
-                        <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ menu.sort_order }}</td>
-                        <td class="px-3 py-2 text-[13px]" :class="menu.is_active ? 'text-green-600' : 'text-gray-400'">{{ menu.is_active ? 'Đang hiển thị' : 'Đang ẩn' }}</td>
-                    </tr>
+                    <template v-for="menu in menus.data" :key="menu.id">
+                        <tr class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] group">
+                            <td class="px-3 py-2 text-[13px] font-semibold text-[#2271b1]">
+                                {{ menu.label }}
+                                <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 flex gap-1 text-[#8c8f94]">
+                                    <button @click="openEditModal(menu)" class="text-[#2271b1]">Sửa</button><span>|</span>
+                                    <button v-if="canHaveParent(menu)" @click="openCreateModal(menu)" class="text-[#2271b1]">Thêm menu con</button><span v-if="canHaveParent(menu)">|</span>
+                                    <button @click="menuToDelete = menu" class="text-[#b32d2e]">Xóa</button>
+                                </div>
+                            </td>
+                            <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ sourceLabel(menu) }}: {{ sourceName(menu) }}</td>
+                            <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ menu.sort_order }}</td>
+                            <td class="px-3 py-2 text-[13px]" :class="menu.is_active ? 'text-green-600' : 'text-gray-400'">{{ menu.is_active ? 'Đang hiển thị' : 'Đang ẩn' }}</td>
+                        </tr>
+                        <tr v-for="child in menu.children" :key="child.id" class="border-b border-[#f0f0f1] hover:bg-[#f6f7f7] group bg-[#fbfbfc]">
+                            <td class="px-3 py-2 pl-8 text-[13px] font-semibold text-[#2271b1]">
+                                <span class="text-[#c3c4c7] mr-1">—</span>{{ child.label }}
+                                <div class="text-[12px] mt-0.5 opacity-0 group-hover:opacity-100 flex gap-1 text-[#8c8f94]">
+                                    <button @click="openEditModal(child)" class="text-[#2271b1]">Sửa</button><span>|</span>
+                                    <button @click="menuToDelete = child" class="text-[#b32d2e]">Xóa</button>
+                                </div>
+                            </td>
+                            <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ sourceLabel(child) }}: {{ sourceName(child) }}</td>
+                            <td class="px-3 py-2 text-[13px] text-[#50575e]">{{ child.sort_order }}</td>
+                            <td class="px-3 py-2 text-[13px]" :class="child.is_active ? 'text-green-600' : 'text-gray-400'">{{ child.is_active ? 'Đang hiển thị' : 'Đang ẩn' }}</td>
+                        </tr>
+                    </template>
                     <tr v-if="!menus.data.length"><td colspan="4" class="px-3 py-6 text-center text-[13px] text-[#8c8f94]">Chưa có mục menu nào.</td></tr>
                 </tbody>
             </table>
@@ -119,6 +141,19 @@ const deleteMenu = () => {
                         <label class="block text-[12px] font-semibold uppercase mb-1.5">Tên hiển thị</label>
                         <input v-model="form.label" class="w-full border-[#8c8f94] rounded text-[13px]" required />
                         <div v-if="form.errors.label" class="text-red-600 text-[11px]">{{ form.errors.label }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-[12px] font-semibold uppercase mb-1.5">Menu cha</label>
+                        <select
+                            v-model="form.parent_id"
+                            :disabled="!canHaveParent(editingMenu)"
+                            class="w-full border-[#8c8f94] rounded text-[13px] disabled:bg-gray-100 disabled:text-gray-400"
+                        >
+                            <option value="">-- Menu cấp 1 (không có cha) --</option>
+                            <option v-for="item in availableParents(editingMenu)" :key="item.id" :value="item.id">{{ item.label }}</option>
+                        </select>
+                        <div v-if="!canHaveParent(editingMenu)" class="text-[11px] text-[#8c8f94] mt-1">Menu này đang có menu con nên không thể đặt làm menu con của menu khác.</div>
+                        <div v-if="form.errors.parent_id" class="text-red-600 text-[11px]">{{ form.errors.parent_id }}</div>
                     </div>
                     <div>
                         <label class="block text-[12px] font-semibold uppercase mb-1.5">Loại liên kết</label>
