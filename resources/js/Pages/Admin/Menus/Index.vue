@@ -24,6 +24,8 @@ const form = useForm({
 const availableParents = (menu) => props.parentOptions.filter((p) => p.id !== menu?.id);
 const canHaveParent = (menu) => !menu || !menu.children_count;
 
+const categoryOptionLabel = (item) => (item.depth > 0 ? '—'.repeat(item.depth) + ' ' : '') + item.name;
+
 const sourceLabel = (menu) => ({ category: 'Danh mục', product: 'Sản phẩm', post: 'Bài viết', custom: 'Custom link' }[menu.source_type] || menu.source_type);
 const sourceName = (menu) => {
     if (menu.source_type === 'category') return menu.category?.name || 'Không tồn tại';
@@ -165,7 +167,7 @@ const deleteMenu = () => {
                         <label class="block text-[12px] font-semibold uppercase mb-1.5">Chọn nội dung</label>
                         <select v-model="form.source_id" class="w-full border-[#8c8f94] rounded text-[13px]" required>
                             <option value="">-- Chọn --</option>
-                            <template v-if="form.source_type === 'category'"><option v-for="item in categories" :key="item.id" :value="item.id">{{ item.name }}</option></template>
+                            <template v-if="form.source_type === 'category'"><option v-for="item in categories" :key="item.id" :value="item.id">{{ categoryOptionLabel(item) }}</option></template>
                             <template v-if="form.source_type === 'product'"><option v-for="item in products" :key="item.id" :value="item.id">{{ item.name }}</option></template>
                             <template v-if="form.source_type === 'post'"><option v-for="item in posts" :key="item.id" :value="item.id">{{ item.title }}</option></template>
                         </select>

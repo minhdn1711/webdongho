@@ -27,7 +27,7 @@ class MenuController extends Controller
         return Inertia::render('Admin/Menus/Index', [
             'menus' => $menus,
             'parentOptions' => Menu::whereNull('parent_id')->orderBy('sort_order')->orderBy('label')->get(['id', 'label']),
-            'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'categories' => $this->categoryOptions(),
             'products' => Product::where('is_hidden', false)->orderBy('name')->get(['id', 'name']),
             'posts' => Post::where('is_published', true)->latest()->get(['id', 'title']),
         ]);
@@ -52,6 +52,20 @@ class MenuController extends Controller
         $menu->delete();
 
         return back()->with('success', 'Menu đã được xóa thành công!');
+    }
+
+    private function categoryOptions(): array
+    {
+        $all = Category::orderBy('name')->get(['id', 'name', 'parent_id']);
+
+        $flatten = function ($parentId, $depth) use (&$flatten, $all) {
+            return $all->where('parent_id', $parentId)
+                ->flatMap(fn (Category $category) => collect([
+                    ['id' => $category->id, 'name' => $category->name, 'depth' => $depth],
+                ])->concat($flatten($category->id, $depth + 1)));
+        };
+
+        return $flatten(null, 0)->values()->all();
     }
 
     private function validatedData(Request $request, ?Menu $menu = null): array
