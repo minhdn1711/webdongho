@@ -60,7 +60,7 @@ const toggleWishlist = () => {
         <Link :href="route('product.show', product.slug)" class="flex-1 flex flex-col">
             <!-- Product Image -->
             <div class="relative overflow-hidden aspect-[4/5] bg-gray-50 border-b border-gray-50">
-                <img 
+                <img loading="lazy" decoding="async" 
                     :src="product.image" 
                     :alt="product.name"
                     class="w-full h-full object-cover transition duration-700 group-hover:scale-110" 

@@ -35,7 +35,7 @@ const formatDate = (dateString) => {
                 <div v-if="posts.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                     <Link v-for="post in posts" :key="post.id" :href="route('news.show', post.slug)" class="bg-white group cursor-pointer shadow-sm hover:shadow-xl transition flex flex-col">
                         <div class="overflow-hidden aspect-[16/9]">
-                            <img :src="post.image || 'https://via.placeholder.com/800x450'" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
+                            <img loading="lazy" decoding="async" :src="post.image || 'https://via.placeholder.com/800x450'" class="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
                         </div>
                         <div class="p-6 flex-1 flex flex-col">
                             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">

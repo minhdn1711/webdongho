@@ -89,7 +89,7 @@ const submit = () => {
                     <div class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2">
                         <div v-for="item in cart.items" :key="item.id" class="flex gap-4">
                             <div class="w-20 h-20 bg-white border shrink-0">
-                                <img :src="item.image" class="w-full h-full object-cover" />
+                                <img loading="lazy" decoding="async" :src="item.image" class="w-full h-full object-cover" />
                             </div>
                             <div class="flex-1">
                                 <h3 class="text-sm font-bold mb-1">{{ item.name }}</h3>

@@ -24,7 +24,7 @@ class ReviewController extends Controller
         $imagePaths = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('reviews', 's3');
+                $path = \App\Services\StorageService::upload($image, 'reviews', 's3', false);
                 $imagePaths[] = Storage::disk('s3')->url($path);
             }
         }

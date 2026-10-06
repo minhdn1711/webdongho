@@ -42,7 +42,7 @@ const formatPrice = (price) => {
                         <!-- Product Info -->
                         <div class="col-span-3 flex gap-6 items-center">
                             <div class="w-24 h-24 bg-gray-100 shrink-0 border">
-                                <img :src="item.image" class="w-full h-full object-cover" />
+                                <img loading="lazy" decoding="async" :src="item.image" class="w-full h-full object-cover" />
                             </div>
                             <div>
                                 <h3 class="font-bold text-lg mb-1">{{ item.name }}</h3>

@@ -198,7 +198,7 @@ const addToCart = () => {
                             class="flex-shrink-0 w-16 h-16 border-2 rounded overflow-hidden transition"
                             :class="activeImage === img ? 'border-[#d10000]' : 'border-gray-200 hover:border-gray-400'"
                         >
-                            <img :src="img" class="w-full h-full object-cover" :alt="`Ảnh ${idx + 1}`" />
+                            <img loading="lazy" decoding="async" :src="img" class="w-full h-full object-cover" :alt="`Ảnh ${idx + 1}`" />
                         </button>
                     </div>
                 </div>
@@ -248,7 +248,7 @@ const addToCart = () => {
                                         ? 'border-[#d10000] scale-110 ring-1 ring-[#d10000] shadow-md z-10'
                                         : 'border-gray-200 hover:border-gray-400'"
                                 >
-                                    <img v-if="val.image_url" :src="val.image_url" class="w-full h-full object-cover" :alt="val.value" />
+                                    <img loading="lazy" decoding="async" v-if="val.image_url" :src="val.image_url" class="w-full h-full object-cover" :alt="val.value" />
                                 </button>
                             </div>
 
@@ -387,7 +387,7 @@ const addToCart = () => {
                                 </div>
                                 <p class="text-sm text-gray-600 pl-14">{{ review.comment }}</p>
                                 <div v-if="review.images && review.images.length" class="pl-14 mt-3 flex gap-2 flex-wrap">
-                                    <img v-for="(img, idx) in review.images" :key="idx" :src="img" class="w-16 h-16 object-cover rounded border">
+                                    <img loading="lazy" decoding="async" v-for="(img, idx) in review.images" :key="idx" :src="img" class="w-16 h-16 object-cover rounded border">
                                 </div>
                             </div>
                         </div>
@@ -487,7 +487,7 @@ const addToCart = () => {
                         class="w-12 h-12 border-2 rounded overflow-hidden flex-shrink-0 transition"
                         :class="activeImage === img ? 'border-white' : 'border-white/30 hover:border-white/70'"
                     >
-                        <img :src="img" class="w-full h-full object-cover" />
+                        <img loading="lazy" decoding="async" :src="img" class="w-full h-full object-cover" />
                     </button>
                 </div>
             </div>
