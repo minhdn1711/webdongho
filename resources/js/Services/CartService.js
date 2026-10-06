@@ -8,8 +8,16 @@ function makeCartKey(productId, attributes) {
     return `${productId}_${sorted.map(([k, v]) => `${k}:${v}`).join('|')}`;
 }
 
+function loadItems() {
+    try {
+        return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+    } catch (e) {
+        return [];
+    }
+}
+
 export const cart = reactive({
-    items: JSON.parse(localStorage.getItem(CART_KEY) || '[]'),
+    items: loadItems(),
 
     notification: {
         show: false,
@@ -64,7 +72,11 @@ export const cart = reactive({
     },
 
     save() {
-        localStorage.setItem(CART_KEY, JSON.stringify(this.items));
+        try {
+            localStorage.setItem(CART_KEY, JSON.stringify(this.items));
+        } catch (e) {
+            // localStorage unavailable (sandboxed/blocked); keep cart in memory only
+        }
     },
 
     get total() {
