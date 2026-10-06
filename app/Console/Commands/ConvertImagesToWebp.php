@@ -50,7 +50,16 @@ class ConvertImagesToWebp extends Command
 
                     $newPath = preg_replace('/\.(jpe?g|png)$/i', '.webp', $path);
                     if ($disk->exists($newPath)) {
-                        $this->line("skip (webp exists): {$path}");
+                        // Already converted: make sure references point to the webp, then optionally drop the original.
+                        if ($this->option('delete-old')) {
+                            $this->line(($dry ? 'would delete' : 'delete') . " original: {$path}");
+                            if (!$dry) {
+                                $this->updateReferences($path, $newPath);
+                                $disk->delete($path);
+                            }
+                        } else {
+                            $this->line("skip (webp exists): {$path}");
+                        }
                         continue;
                     }
 
