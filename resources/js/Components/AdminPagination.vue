@@ -5,6 +5,10 @@ defineProps({
     paginator: { type: Object, required: true },
     label: { type: String, default: 'mục' },
 });
+
+const pageLabel = (label) => label
+    .replace('Previous', 'Trước')
+    .replace('Next', 'Sau');
 </script>
 
 <template>
@@ -17,7 +21,7 @@ defineProps({
                 <Link
                     v-if="link.url"
                     :href="link.url"
-                    v-html="link.label"
+                    v-html="pageLabel(link.label)"
                     preserve-scroll
                     class="px-3 py-1 text-[13px] border rounded transition"
                     :class="link.active
@@ -26,7 +30,7 @@ defineProps({
                 />
                 <span
                     v-else
-                    v-html="link.label"
+                    v-html="pageLabel(link.label)"
                     class="px-3 py-1 text-[13px] border border-[#c3c4c7] rounded text-[#8c8f94] bg-[#f6f7f7]"
                 />
             </template>

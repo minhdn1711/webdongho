@@ -82,7 +82,7 @@ const destroy = (id) => {
             <div class="mt-4" v-if="reviews.links">
                 <div class="flex gap-1">
                     <a v-for="link in reviews.links" :key="link.label" :href="link.url"
-                        v-html="link.label"
+                        v-html="link.label.replace('Previous', 'Trước').replace('Next', 'Sau')"
                         class="px-3 py-1 border text-sm"
                         :class="{ 'bg-gray-200': link.active, 'pointer-events-none text-gray-400': !link.url }">
                     </a>
